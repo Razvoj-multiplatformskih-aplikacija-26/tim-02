@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ui/ui.dart';
 
 void main() {
   runApp(const BackofficeApp());
@@ -9,9 +10,11 @@ class BackofficeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'TFT Insights Backoffice',
-      home: Scaffold(body: Center(child: Text('TFT Insights Backoffice'))),
+      theme: TftTheme.light(),
+      darkTheme: TftTheme.dark(),
+      home: const Scaffold(body: Center(child: Text('TFT Insights Backoffice'))),
     );
   }
 }

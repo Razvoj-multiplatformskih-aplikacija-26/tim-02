@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ui/ui.dart';
 
 void main() {
   runApp(const TftInsightsApp());
@@ -9,9 +10,11 @@ class TftInsightsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'TFT Insights',
-      home: Scaffold(body: Center(child: Text('TFT Insights'))),
+      theme: TftTheme.light(),
+      darkTheme: TftTheme.dark(),
+      home: const Scaffold(body: Center(child: Text('TFT Insights'))),
     );
   }
 }
