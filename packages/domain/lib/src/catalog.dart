@@ -12,3 +12,13 @@ final class Champion extends Equatable {
   @override
   List<Object?> get props => [id, name, cost];
 }
+
+final class Item extends Equatable {
+  const Item({required this.id, required this.name});
+
+  final ItemId id;
+  final String name;
+
+  @override
+  List<Object?> get props => [id, name];
+}

@@ -3,9 +3,11 @@ import 'package:domain/domain.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ui/ui.dart';
 
 import 'debug_menu.dart';
+import 'tactic_detail_screen.dart';
 
 class MyTacticsScreen extends StatelessWidget {
   const MyTacticsScreen({super.key});
@@ -26,7 +28,11 @@ class MyTacticsScreen extends StatelessWidget {
               children: [
                 for (final kind in TacticStatusKind.values)
                   if (mine.where((t) => t.status.kind == kind).toList() case final group when group.isNotEmpty)
-                    TacticSection(label: kind.label, tactics: group),
+                    TacticSection(
+                      label: kind.label,
+                      tactics: group,
+                      onOpen: (tactic) => context.push(TacticDetailScreen.pathFor(tactic.id)),
+                    ),
               ],
             ),
           },

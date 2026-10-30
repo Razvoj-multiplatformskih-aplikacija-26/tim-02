@@ -46,4 +46,6 @@ final class TacticsLoaded extends TacticsState {
   List<Tactic> get mine => tactics.where((t) => t.authorId == user.id).toList();
 
   Map<Tier, List<Tactic>> get comps => tierList.comps(tactics);
+
+  Tactic? tactic(TacticId id) => tactics.where((t) => t.id == id).firstOrNull;
 }

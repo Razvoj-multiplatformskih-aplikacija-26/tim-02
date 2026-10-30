@@ -4,10 +4,17 @@ import 'package:flutter/material.dart';
 import 'champion_hex.dart';
 
 class TacticSection extends StatelessWidget {
-  const TacticSection({super.key, required this.label, required this.tactics, this.highlighted = false});
+  const TacticSection({
+    super.key,
+    required this.label,
+    required this.tactics,
+    required this.onOpen,
+    this.highlighted = false,
+  });
 
   final String label;
   final List<Tactic> tactics;
+  final ValueChanged<Tactic> onOpen;
   final bool highlighted;
 
   @override
@@ -45,7 +52,7 @@ class TacticSection extends StatelessWidget {
                   for (final tactic in tactics)
                     SizedBox(
                       width: width,
-                      child: _TacticTile(tactic: tactic),
+                      child: _TacticTile(tactic: tactic, onOpen: () => onOpen(tactic)),
                     ),
                 ],
               );
@@ -58,25 +65,33 @@ class TacticSection extends StatelessWidget {
 }
 
 class _TacticTile extends StatelessWidget {
-  const _TacticTile({required this.tactic});
+  const _TacticTile({required this.tactic, required this.onOpen});
 
   final Tactic tactic;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      children: [
-        ChampionHex(champion: tactic.carry, size: 76),
-        const SizedBox(height: 8),
-        Text(
-          tactic.title,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+    return InkWell(
+      onTap: onOpen,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          children: [
+            ChampionHex(champion: tactic.carry, size: 76),
+            const SizedBox(height: 8),
+            Text(
+              tactic.title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

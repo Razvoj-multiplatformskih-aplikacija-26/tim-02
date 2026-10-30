@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../catalog.dart';
 import '../identifiers.dart';
 import 'tactic_status.dart';
+import 'tactic_variant.dart';
 
 final class Tactic extends Equatable {
   const Tactic({
@@ -14,6 +15,7 @@ final class Tactic extends Equatable {
     required this.carry,
     required this.status,
     required this.updatedAt,
+    this.variants = const [],
   });
 
   final TacticId id;
@@ -24,7 +26,8 @@ final class Tactic extends Equatable {
   final Champion carry;
   final TacticStatus status;
   final DateTime updatedAt;
+  final List<TacticVariant> variants;
 
   @override
-  List<Object?> get props => [id, authorId, authorName, title, description, carry, status, updatedAt];
+  List<Object?> get props => [id, authorId, authorName, title, description, carry, status, updatedAt, variants];
 }

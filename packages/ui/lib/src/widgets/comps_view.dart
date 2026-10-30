@@ -6,10 +6,11 @@ import 'state_views.dart';
 import 'tactic_section.dart';
 
 class CompsView extends StatelessWidget {
-  const CompsView({super.key, required this.patch, required this.comps});
+  const CompsView({super.key, required this.patch, required this.comps, required this.onOpen});
 
   final PatchId patch;
   final Map<Tier, List<Tactic>> comps;
+  final ValueChanged<Tactic> onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,8 @@ class CompsView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         for (final MapEntry(key: tier, value: tactics) in comps.entries)
-          if (tactics.isNotEmpty) TacticSection(label: tier.label, tactics: tactics, highlighted: tier == Tier.s),
+          if (tactics.isNotEmpty)
+            TacticSection(label: tier.label, tactics: tactics, onOpen: onOpen, highlighted: tier == Tier.s),
       ],
     );
   }

@@ -1,8 +1,10 @@
+import 'package:domain/domain.dart';
 import 'package:go_router/go_router.dart';
 
 import 'screens/comps_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/my_tactics_screen.dart';
+import 'screens/tactic_detail_screen.dart';
 
 GoRouter createRouter() {
   return GoRouter(
@@ -18,6 +20,14 @@ GoRouter createRouter() {
             routes: [GoRoute(path: '/mine', builder: (context, state) => const MyTacticsScreen())],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/tactics/:id',
+        builder: (context, state) => TacticDetailScreen(
+          id: TacticId(state.pathParameters['id']!),
+          variant: int.tryParse(state.uri.queryParameters['variant'] ?? '') ?? 0,
+          early: state.uri.queryParameters['early'] == '1',
+        ),
       ),
     ],
   );

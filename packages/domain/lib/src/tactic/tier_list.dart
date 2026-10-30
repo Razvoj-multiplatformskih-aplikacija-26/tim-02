@@ -22,6 +22,8 @@ final class TierList extends Equatable {
   final PatchId patch;
   final List<TierPlacement> placements;
 
+  Tier? tierOf(TacticId tactic) => placements.where((p) => p.tactic == tactic).firstOrNull?.tier;
+
   Map<Tier, List<Tactic>> comps(Iterable<Tactic> tactics) {
     final published = {
       for (final tactic in tactics)

@@ -25,3 +25,21 @@ extension TacticStatusKindLabel on TacticStatusKind {
     TacticStatusKind.archived => 'Arhivirane',
   };
 }
+
+extension PlaystyleLabel on Playstyle {
+  String get label => switch (this) {
+    Playstyle.fast9 => 'Brzi nivo 9',
+    Playstyle.fast8 => 'Brzi nivo 8',
+    Playstyle.reroll1 => 'Reroll na trošku 1',
+    Playstyle.reroll2 => 'Reroll na trošku 2',
+    Playstyle.reroll3 => 'Reroll na trošku 3',
+  };
+}
+
+extension DifficultyLabel on Difficulty {
+  String get label => switch (this) {
+    Difficulty.easy => 'Lako',
+    Difficulty.medium => 'Srednje',
+    Difficulty.hard => 'Teško',
+  };
+}

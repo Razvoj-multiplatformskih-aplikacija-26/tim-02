@@ -1,6 +1,7 @@
 import 'package:domain/domain.dart';
 
 import 'catalog.dart';
+import 'variants.dart';
 
 const _marko = User(id: UserId('u-marko'), name: 'Marko', role: Role.creator);
 const _tftInsights = User(id: UserId('u-tft-insights'), name: 'TFT Insights', role: Role.creator);
@@ -28,6 +29,7 @@ List<Tactic> seedTactics(DateTime now) {
     carry: carry,
     status: status,
     updatedAt: daysAgo(updated),
+    variants: seedVariants[TacticId(id)] ?? const [],
   );
 
   Hidden hidden(String reason, int days) =>

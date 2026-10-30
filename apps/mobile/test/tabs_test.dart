@@ -34,4 +34,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Ahri Spellweaver'), findsOneWidget);
   });
+
+  testWidgets('opens a tactic from Kompozicije and switches its variant and board', (tester) async {
+    await tester.pumpWidget(TftInsightsApp(dependencies: AppDependencies.fake(latency: Duration.zero)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Elderwood Ezreal'));
+    await tester.pumpAndSettle();
+    expect(find.text('Elderwood Executioners · Brzi nivo 8 · Srednje'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Fae Ezreal'));
+    await tester.pumpAndSettle();
+    expect(find.text('Fae Ezreal · Brzi nivo 8 · Srednje'), findsOneWidget);
+    final units = find.descendant(of: find.byType(LineupBoard), matching: find.byType(UnitHex));
+    expect(units, findsNWidgets(11));
+
+    await tester.tap(find.text('Rana igra'));
+    await tester.pumpAndSettle();
+    expect(find.text('Fae Ezreal · Brzi nivo 8 · Srednje'), findsOneWidget);
+    expect(units, findsNWidgets(4));
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('KOMPOZICIJE'), findsOneWidget);
+  });
 }

@@ -22,6 +22,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/tft/champions/
+    - assets/tft/items/
   fonts:
     - family: Anton
       fonts:
