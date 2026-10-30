@@ -9,14 +9,24 @@ final class FakeTactics implements TacticRepository {
 
   final Duration latency;
   final List<Tactic> _tactics;
+  int failingRequests = 0;
+  int emptyResponses = 0;
 
   Future<void> _roundTrip() async {
     await Future<void>.delayed(latency);
+    if (failingRequests > 0) {
+      failingRequests--;
+      throw const RepositoryException('Simulated outage');
+    }
   }
 
   @override
   Future<List<Tactic>> all() async {
     await _roundTrip();
+    if (emptyResponses > 0) {
+      emptyResponses--;
+      return const [];
+    }
     return List.of(_tactics);
   }
 

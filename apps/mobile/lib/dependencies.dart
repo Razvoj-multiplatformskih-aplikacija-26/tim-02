@@ -4,7 +4,7 @@ import 'package:use_cases/use_cases.dart';
 import 'data/fake_tactics.dart';
 
 final class AppDependencies {
-  AppDependencies({required this.user, required TacticRepository tactics})
+  AppDependencies({required this.user, required TacticRepository tactics, this.fakeTactics})
     : getTactics = GetTactics(tactics: tactics),
       getTierList = GetTierList(tactics: tactics);
 
@@ -13,10 +13,12 @@ final class AppDependencies {
     return AppDependencies(
       user: const User(id: UserId('u-marko'), name: 'Marko', role: Role.creator),
       tactics: tactics,
+      fakeTactics: tactics,
     );
   }
 
   final User user;
   final GetTactics getTactics;
   final GetTierList getTierList;
+  final FakeTactics? fakeTactics;
 }
