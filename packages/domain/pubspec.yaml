@@ -9,6 +9,7 @@ resolution: workspace
 
 dependencies:
   collection: 1.19.1
+  equatable: 3.0.0
   meta: 1.19.0
 
 dev_dependencies:

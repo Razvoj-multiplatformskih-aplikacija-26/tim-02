@@ -1,20 +1,16 @@
+import 'package:blocs/blocs.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:ui/ui.dart';
 
-void main() {
-  runApp(const TftInsightsApp());
-}
+import 'app.dart';
+import 'dependencies.dart';
 
-class TftInsightsApp extends StatelessWidget {
-  const TftInsightsApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TFT Insights',
-      theme: TftTheme.light(),
-      darkTheme: TftTheme.dark(),
-      home: const Scaffold(body: Center(child: Text('TFT Insights'))),
-    );
-  }
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting(serbianLatin);
+  if (kDebugMode) Bloc.observer = ConsoleBlocObserver(debugPrint);
+  runApp(TftInsightsApp(dependencies: AppDependencies.fake()));
 }

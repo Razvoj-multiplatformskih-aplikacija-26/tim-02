@@ -1,0 +1,26 @@
+import 'package:domain/domain.dart';
+import 'package:use_cases/use_cases.dart';
+
+const marko = User(id: UserId('u-marko'), name: 'Marko', role: Role.creator);
+const luka = User(id: UserId('u-luka'), name: 'Luka', role: Role.creator);
+
+final class FakeTactics implements TacticRepository {
+  FakeTactics({
+    List<Tactic> tactics = const [],
+    this.tierList = const TierList(patch: PatchId('18.5c'), placements: []),
+    this.failing = false,
+  }) : tactics = List.of(tactics);
+
+  final List<Tactic> tactics;
+  final TierList tierList;
+  bool failing;
+
+  @override
+  Future<List<Tactic>> all() async {
+    if (failing) throw const RepositoryException('simulated outage');
+    return List.of(tactics);
+  }
+
+  @override
+  Future<TierList> currentTierList() async => tierList;
+}
