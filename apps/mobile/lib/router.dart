@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'screens/comps_screen.dart';
 import 'screens/home_shell.dart';
+import 'screens/lineups_screen.dart';
 import 'screens/my_tactics_screen.dart';
 import 'screens/tactic_detail_screen.dart';
 
@@ -18,6 +19,9 @@ GoRouter createRouter() {
           ),
           StatefulShellBranch(
             routes: [GoRoute(path: '/mine', builder: (context, state) => const MyTacticsScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/lineups', builder: (context, state) => const LineupsScreen())],
           ),
         ],
       ),

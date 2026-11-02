@@ -90,4 +90,14 @@ void main() {
     expect(find.text('Patch 18.5c: B'), findsNothing);
     expect(find.text('Arhiviraj'), findsNothing);
   });
+
+  testWidgets('lists my saved lineups in the third tab', (tester) async {
+    await tester.pumpWidget(TftInsightsApp(dependencies: AppDependencies.fake(latency: Duration.zero)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(NavigationBar), matching: find.text('Moje postave')));
+    await tester.pumpAndSettle();
+    expect(find.text('MOJE POSTAVE'), findsOneWidget);
+    expect(find.text('Fae Ezreal za rangirano'), findsOneWidget);
+    expect(find.text('11 šampiona'), findsOneWidget);
+  });
 }

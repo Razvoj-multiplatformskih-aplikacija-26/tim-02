@@ -24,6 +24,11 @@ class HomeShell extends StatelessWidget {
             selectedIcon: Icon(Icons.description),
             label: 'Moje taktike',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.hexagon_outlined),
+            selectedIcon: Icon(Icons.hexagon),
+            label: 'Moje postave',
+          ),
         ],
       ),
     );

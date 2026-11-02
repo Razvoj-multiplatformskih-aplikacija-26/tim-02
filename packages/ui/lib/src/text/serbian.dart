@@ -53,3 +53,5 @@ extension TacticActionText on TacticAction {
     TacticAction.archive => 'Taktika je arhivirana.',
   };
 }
+
+String formatChampionCount(int count) => '$count ${count % 10 == 1 && count % 100 != 11 ? 'šampion' : 'šampiona'}';

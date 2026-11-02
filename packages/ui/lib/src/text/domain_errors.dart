@@ -6,6 +6,7 @@ extension DomainErrorMessage on DomainError {
     InvalidPosition() => 'Polje ne postoji na tabli.',
     TooManyItems() => 'Šampion može nositi najviše ${Unit.maxItems} predmeta.',
     HexOccupied() => 'Na ovom polju već stoji šampion.',
+    InvalidLineupName() => 'Naziv postave mora imati od 1 do ${LineupName.maxLength} znakova.',
     NotAllowed() => 'Nemate pravo na ovu radnju.',
     InvalidTransition() => 'Ova promena stanja nije moguća.',
     NotFound() => 'Taktika nije pronađena.',

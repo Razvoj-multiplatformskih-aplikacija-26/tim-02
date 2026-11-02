@@ -325,3 +325,13 @@ const seedTierList = TierList(
     TierPlacement(tactic: TacticId('t-30'), tier: Tier.situational),
   ],
 );
+
+List<PersonalLineup> seedLineups() {
+  PersonalLineup lineup(String id, String name, Lineup lineup) =>
+      PersonalLineup(id: LineupId(id), name: LineupName.parse(name).valueOrNull!, lineup: lineup);
+
+  return [
+    lineup('l-1', 'Fae Ezreal za rangirano', seedVariants[const TacticId('t-05')]![1].lineup),
+    lineup('l-2', 'Draven sa zmajevima', seedVariants[const TacticId('t-12')]![1].lineup),
+  ];
+}
