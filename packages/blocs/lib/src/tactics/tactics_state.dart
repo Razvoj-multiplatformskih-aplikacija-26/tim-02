@@ -31,21 +31,81 @@ final class TacticsEmpty extends TacticsState {
 }
 
 final class TacticsLoaded extends TacticsState {
-  const TacticsLoaded({required this.user, required this.tactics, required this.tierList});
+  const TacticsLoaded({
+    required this.user,
+    required this.tactics,
+    required this.tierList,
+    this.actions = const {},
+    this.inFlightId,
+    this.notice,
+  });
 
   final User user;
   final List<Tactic> tactics;
   final TierList tierList;
+  final Map<TacticId, Set<TacticAction>> actions;
+  final TacticId? inFlightId;
+  final TacticsNotice? notice;
 
   @override
-  List<Object?> get props => [user, tactics, tierList];
+  List<Object?> get props => [user, tactics, tierList, actions, inFlightId, notice];
 
   @override
-  String toString() => 'TacticsLoaded(${tactics.length} tactics, patch ${tierList.patch.value})';
+  String toString() => [
+    'TacticsLoaded(${tactics.length} tactics, patch ${tierList.patch.value}',
+    if (inFlightId case final id?) ', in flight ${id.value}',
+    if (notice case final notice?) ', ${notice.runtimeType}',
+    ')',
+  ].join();
 
   List<Tactic> get mine => tactics.where((t) => t.authorId == user.id).toList();
 
   Map<Tier, List<Tactic>> get comps => tierList.comps(tactics);
 
+  bool get isBusy => inFlightId != null;
+
   Tactic? tactic(TacticId id) => tactics.where((t) => t.id == id).firstOrNull;
+
+  Set<TacticAction> actionsFor(TacticId id) => actions[id] ?? const {};
+
+  TacticsLoaded withInFlight(TacticId id) =>
+      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, inFlightId: id);
+
+  TacticsLoaded withNotice(TacticsNotice? notice) =>
+      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, notice: notice);
+}
+
+sealed class TacticsNotice extends Equatable {
+  const TacticsNotice();
+
+  @override
+  List<Object?> get props => const [];
+}
+
+final class TacticChanged extends TacticsNotice {
+  const TacticChanged(this.action, this.tactic);
+
+  final TacticAction action;
+  final Tactic tactic;
+
+  @override
+  List<Object?> get props => [action, tactic];
+}
+
+final class TacticRejected extends TacticsNotice {
+  const TacticRejected(this.error);
+
+  final DomainError error;
+
+  @override
+  List<Object?> get props => [error];
+}
+
+final class TacticRequestFailed extends TacticsNotice {
+  const TacticRequestFailed(this.cause);
+
+  final Object cause;
+
+  @override
+  List<Object?> get props => [cause];
 }

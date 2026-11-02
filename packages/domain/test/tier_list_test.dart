@@ -70,13 +70,14 @@ void main() {
       expect(list.comps(tactics).values.expand((t) => t).map((t) => t.id.value), ['t-1']);
     });
 
-    test('finds the tier of a placed tactic and none for an unplaced one', () {
+    test('finds the tier of a placed tactic and none for an unplaced or archived one', () {
       const list = TierList(
         patch: PatchId('18.5c'),
         placements: [TierPlacement(tactic: TacticId('t-1'), tier: Tier.b)],
       );
-      expect(list.tierOf(const TacticId('t-1')), Tier.b);
-      expect(list.tierOf(const TacticId('t-2')), isNull);
+      expect(list.tierOf(tactic('t-1', hidden)), Tier.b);
+      expect(list.tierOf(tactic('t-1', Archived(at: now))), isNull);
+      expect(list.tierOf(tactic('t-2', Published(at: now))), isNull);
     });
   });
 }

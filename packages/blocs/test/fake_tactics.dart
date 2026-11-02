@@ -23,4 +23,16 @@ final class FakeTactics implements TacticRepository {
 
   @override
   Future<TierList> currentTierList() async => tierList;
+
+  @override
+  Future<Tactic?> find(TacticId id) async {
+    if (failing) throw const RepositoryException('simulated outage');
+    return tactics.where((t) => t.id == id).firstOrNull;
+  }
+
+  @override
+  Future<Tactic> save(Tactic tactic) async {
+    tactics[tactics.indexWhere((t) => t.id == tactic.id)] = tactic;
+    return tactic;
+  }
 }

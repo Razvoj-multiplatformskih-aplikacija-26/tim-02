@@ -39,6 +39,8 @@ class _TftInsightsAppState extends State<TftInsightsApp> {
             create: (_) => TacticsBloc(
               getTactics: dependencies.getTactics,
               getTierList: dependencies.getTierList,
+              changeStatus: dependencies.changeTacticStatus,
+              clock: dependencies.clock,
               user: dependencies.user,
             )..add(const TacticsRequested()),
           ),

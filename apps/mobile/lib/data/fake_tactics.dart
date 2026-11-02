@@ -35,4 +35,17 @@ final class FakeTactics implements TacticRepository {
     await _roundTrip();
     return seedTierList;
   }
+
+  @override
+  Future<Tactic?> find(TacticId id) async {
+    await _roundTrip();
+    return _tactics.where((t) => t.id == id).firstOrNull;
+  }
+
+  @override
+  Future<Tactic> save(Tactic tactic) async {
+    await _roundTrip();
+    _tactics[_tactics.indexWhere((t) => t.id == tactic.id)] = tactic;
+    return tactic;
+  }
 }

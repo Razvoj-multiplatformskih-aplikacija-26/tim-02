@@ -43,3 +43,13 @@ extension DifficultyLabel on Difficulty {
     Difficulty.hard => 'Teško',
   };
 }
+
+extension TacticActionText on TacticAction {
+  String get label => switch (this) {
+    TacticAction.archive => 'Arhiviraj',
+  };
+
+  String get doneMessage => switch (this) {
+    TacticAction.archive => 'Taktika je arhivirana.',
+  };
+}

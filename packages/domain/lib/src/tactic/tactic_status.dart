@@ -51,3 +51,9 @@ final class Archived extends TacticStatus {
   @override
   List<Object?> get props => [at];
 }
+
+bool canTransition(TacticStatus from, TacticStatus to) => switch ((from, to)) {
+  (Draft(), Published()) || (Published(), Hidden()) || (Hidden(), Published()) => true,
+  (Draft() || Published() || Hidden(), Archived()) => true,
+  _ => false,
+};

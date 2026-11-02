@@ -30,4 +30,16 @@ final class Tactic extends Equatable {
 
   @override
   List<Object?> get props => [id, authorId, authorName, title, description, carry, status, updatedAt, variants];
+
+  Tactic copyWith({TacticStatus? status, DateTime? updatedAt}) => Tactic(
+    id: id,
+    authorId: authorId,
+    authorName: authorName,
+    title: title,
+    description: description,
+    carry: carry,
+    status: status ?? this.status,
+    updatedAt: updatedAt ?? this.updatedAt,
+    variants: variants,
+  );
 }

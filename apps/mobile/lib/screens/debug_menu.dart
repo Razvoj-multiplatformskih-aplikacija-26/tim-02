@@ -5,13 +5,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../dependencies.dart';
 
 class DebugMenu extends StatelessWidget {
-  const DebugMenu({super.key});
+  const DebugMenu({super.key, this.reloads = true});
+
+  final bool reloads;
 
   @override
   Widget build(BuildContext context) {
     final fake = context.read<AppDependencies>().fakeTactics;
     if (fake == null) return const SizedBox.shrink();
-    void reload() => context.read<TacticsBloc>().add(const TacticsRequested());
+    void reload() {
+      if (reloads) context.read<TacticsBloc>().add(const TacticsRequested());
+    }
+
     return PopupMenuButton<void>(
       itemBuilder: (context) => [
         PopupMenuItem(

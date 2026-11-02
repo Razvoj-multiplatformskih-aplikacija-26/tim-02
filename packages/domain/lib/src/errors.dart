@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'lineup/lineup.dart';
+import 'tactic/tactic_status.dart';
 
 sealed class DomainError extends Equatable {
   const DomainError();
@@ -38,4 +39,22 @@ final class HexOccupied extends DomainError {
 
   @override
   List<Object?> get props => [position];
+}
+
+final class NotAllowed extends DomainError {
+  const NotAllowed();
+}
+
+final class InvalidTransition extends DomainError {
+  const InvalidTransition({required this.from, required this.to});
+
+  final TacticStatus from;
+  final TacticStatus to;
+
+  @override
+  List<Object?> get props => [from, to];
+}
+
+final class NotFound extends DomainError {
+  const NotFound();
 }

@@ -58,4 +58,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('KOMPOZICIJE'), findsOneWidget);
   });
+
+  testWidgets('archives my tactic after confirming in a dialog and keeps it when the request fails', (tester) async {
+    await tester.pumpWidget(TftInsightsApp(dependencies: AppDependencies.fake(latency: Duration.zero)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(NavigationBar), matching: find.text('Moje taktike')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Caitlyn Hunters'));
+    await tester.pumpAndSettle();
+
+    Future<void> archive() async {
+      await tester.tap(find.text('Arhiviraj'));
+      await tester.pumpAndSettle();
+      expect(find.text('Arhivirati taktiku?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Arhiviraj'));
+      await tester.pumpAndSettle();
+    }
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Simuliraj grešku'));
+    await tester.pumpAndSettle();
+    await archive();
+    expect(find.text('Izmena nije sačuvana.'), findsOneWidget);
+    expect(find.text('Objavljena'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+    await archive();
+    expect(find.text('Taktika je arhivirana.'), findsOneWidget);
+    expect(find.text('Arhivirana'), findsOneWidget);
+    expect(find.text('Patch 18.5c: B'), findsNothing);
+    expect(find.text('Arhiviraj'), findsNothing);
+  });
 }
