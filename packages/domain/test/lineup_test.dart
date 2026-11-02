@@ -42,5 +42,13 @@ void main() {
         Failure<Lineup>(HexOccupied(corner)),
       );
     });
+
+    test('frees a hex when its champion is removed', () {
+      final lineup = const Lineup.empty()
+          .place(Placement(unit: Unit.parse(ahri).valueOrNull!, position: corner))
+          .valueOrNull!
+          .remove(corner);
+      expect(lineup.place(Placement(unit: Unit.parse(zyra).valueOrNull!, position: corner)).isSuccess, isTrue);
+    });
   });
 }

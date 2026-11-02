@@ -2,6 +2,7 @@ import 'package:blocs/blocs.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ui/ui.dart';
 
 class LineupsScreen extends StatelessWidget {
@@ -11,13 +12,18 @@ class LineupsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('MOJE POSTAVE')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/lineups/new'),
+        icon: const Icon(Icons.add),
+        label: const Text('Nova postava'),
+      ),
       body: BlocBuilder<LineupsBloc, LineupsState>(
         builder: (context, state) => switch (state) {
           LineupsLoading() => const LoadingView(),
           LineupsFailure() => FailureView(onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested())),
           LineupsLoaded(lineups: []) => const EmptyView(title: 'Još nemate postava.'),
           LineupsLoaded(:final lineups) => ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
             children: [for (final lineup in lineups) _LineupCard(lineup: lineup)],
           ),
         },

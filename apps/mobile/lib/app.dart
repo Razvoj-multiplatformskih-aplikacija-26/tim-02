@@ -44,7 +44,11 @@ class _TftInsightsAppState extends State<TftInsightsApp> {
               user: dependencies.user,
             )..add(const TacticsRequested()),
           ),
-          BlocProvider(create: (_) => LineupsBloc(getLineups: dependencies.getLineups)..add(const LineupsRequested())),
+          BlocProvider(
+            create: (_) =>
+                LineupsBloc(getLineups: dependencies.getLineups, getCatalog: dependencies.getCatalog)
+                  ..add(const LineupsRequested()),
+          ),
         ],
         child: MaterialApp.router(
           title: 'TFT Insights',

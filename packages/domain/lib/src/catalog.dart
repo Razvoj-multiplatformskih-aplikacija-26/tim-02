@@ -22,3 +22,13 @@ final class Item extends Equatable {
   @override
   List<Object?> get props => [id, name];
 }
+
+final class Catalog extends Equatable {
+  const Catalog({required this.champions, required this.items});
+
+  final List<Champion> champions;
+  final List<Item> items;
+
+  @override
+  List<Object?> get props => [champions, items];
+}

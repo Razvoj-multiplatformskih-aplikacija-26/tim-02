@@ -27,12 +27,13 @@ final class LineupsFailure extends LineupsState {
 }
 
 final class LineupsLoaded extends LineupsState {
-  const LineupsLoaded(this.lineups);
+  const LineupsLoaded(this.lineups, this.catalog);
 
   final List<PersonalLineup> lineups;
+  final Catalog catalog;
 
   @override
-  List<Object?> get props => [lineups];
+  List<Object?> get props => [lineups, catalog];
 
   @override
   String toString() => 'LineupsLoaded(${lineups.length} lineups)';

@@ -62,6 +62,11 @@ final class Lineup extends Equatable {
     return Success(Lineup._([...placements, placement]));
   }
 
+  Lineup remove(HexPosition position) => Lineup._([
+    for (final placement in placements)
+      if (placement.position != position) placement,
+  ]);
+
   @override
   List<Object?> get props => [placements];
 }
