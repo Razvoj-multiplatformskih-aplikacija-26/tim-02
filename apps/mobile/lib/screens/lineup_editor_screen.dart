@@ -31,7 +31,7 @@ class LineupEditorScreen extends StatelessWidget {
       builder: (context, state) {
         final saving = state.status == LineupEditorStatus.saving;
         return Scaffold(
-          appBar: AppBar(title: const Text('NOVA POSTAVA')),
+          appBar: AppBar(title: Text(state.id == null ? 'NOVA POSTAVA' : 'UREDI POSTAVU')),
           body: BlocBuilder<LineupsBloc, LineupsState>(
             builder: (context, lineups) => switch (lineups) {
               LineupsLoading() => const LoadingView(),
@@ -69,7 +69,8 @@ class _Editor extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        TextField(
+        TextFormField(
+          initialValue: state.name,
           decoration: InputDecoration(labelText: 'Naziv postave', errorText: state.nameError?.message),
           textCapitalization: TextCapitalization.sentences,
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),

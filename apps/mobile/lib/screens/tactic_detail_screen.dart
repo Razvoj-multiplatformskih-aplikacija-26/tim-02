@@ -55,22 +55,43 @@ class TacticDetailScreen extends StatelessWidget {
           },
         },
         bottomNavigationBar: switch (state) {
-          TacticsLoaded() when state.actionsFor(id).contains(TacticAction.archive) => SafeArea(
-            minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: state.inFlightId == id
-                ? OutlinedButton.icon(
-                    onPressed: null,
-                    icon: const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.5)),
-                    label: const Text('Arhiviranje…'),
-                  )
-                : OutlinedButton.icon(
-                    onPressed: state.isBusy ? null : () => _confirmArchive(context, id),
-                    icon: const Icon(Icons.archive_outlined),
-                    label: Text(TacticAction.archive.label),
-                  ),
-          ),
+          TacticsLoaded() => _actions(context, state),
           _ => null,
         },
+      ),
+    );
+  }
+
+  Widget? _actions(BuildContext context, TacticsLoaded state) {
+    final chosen = state.tactic(id)?.variants.elementAtOrNull(variant);
+    final archivable = state.actionsFor(id).contains(TacticAction.archive);
+    if (chosen == null && !archivable) return null;
+    final archive = state.inFlightId == id
+        ? OutlinedButton.icon(
+            onPressed: null,
+            icon: const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.5)),
+            label: const Text('Arhiviranje…'),
+          )
+        : OutlinedButton.icon(
+            onPressed: state.isBusy ? null : () => _confirmArchive(context, id),
+            icon: const Icon(Icons.archive_outlined),
+            label: Text(TacticAction.archive.label),
+          );
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Row(
+        spacing: 12,
+        children: [
+          if (archivable) chosen == null ? Expanded(child: archive) : archive,
+          if (chosen != null)
+            Expanded(
+              child: FilledButton.tonalIcon(
+                onPressed: () => context.push('/lineups/new?from=${id.value}', extra: chosen),
+                icon: const Icon(Icons.bookmark_add_outlined),
+                label: const Text('Sačuvaj kao postavu'),
+              ),
+            ),
+        ],
       ),
     );
   }

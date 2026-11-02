@@ -10,11 +10,15 @@ import 'support.dart';
 void main() {
   setUpAll(() => initializeDateFormatting(serbianLatin));
 
-  Future<void> openEditor(WidgetTester tester) async {
+  Future<void> pumpOnPhone(WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     await pumpApp(tester);
+  }
+
+  Future<void> openEditor(WidgetTester tester) async {
+    await pumpOnPhone(tester);
     await openTab(tester, 'Moje postave');
     await tester.tap(find.text('Nova postava'));
     await tester.pumpAndSettle();
@@ -65,5 +69,43 @@ void main() {
       scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)),
     );
     expect(find.text('1 šampion'), findsOneWidget);
+  });
+
+  testWidgets('renames a saved lineup without adding another', (tester) async {
+    await pumpOnPhone(tester);
+    await openTab(tester, 'Moje postave');
+    await tester.tap(find.text('Fae Ezreal za rangirano'));
+    await tester.pumpAndSettle();
+    expect(find.text('UREDI POSTAVU'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Naziv postave'), 'Fae Ezreal');
+    await tester.tap(find.text('Sačuvaj'));
+    await tester.pumpAndSettle();
+    expect(find.text('Fae Ezreal'), findsOneWidget);
+    expect(find.text('Fae Ezreal za rangirano'), findsNothing);
+    expect(find.text('Draven sa zmajevima'), findsOneWidget);
+  });
+
+  testWidgets("starts a new lineup from a tactic's variant", (tester) async {
+    await pumpOnPhone(tester);
+    await tester.tap(find.text('Draven na nivou 9'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sačuvaj kao postavu'));
+    await tester.pumpAndSettle();
+    expect(find.text('NOVA POSTAVA'), findsOneWidget);
+    expect(find.text('Draven Ezreal 9'), findsOneWidget);
+
+    await tester.tap(find.text('Sačuvaj'));
+    await tester.pumpAndSettle();
+    expect(find.text('Postava je sačuvana.'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    await openTab(tester, 'Moje postave');
+    await tester.scrollUntilVisible(
+      find.text('Draven Ezreal 9'),
+      300,
+      scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)),
+    );
+    expect(find.text('Draven Ezreal 9'), findsOneWidget);
   });
 }

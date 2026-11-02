@@ -18,7 +18,10 @@ final class LineupsBloc extends Bloc<LineupsEvent, LineupsState> {
     });
     on<LineupSaved>((event, emit) {
       if (state case LineupsLoaded(:final lineups, :final catalog)) {
-        emit(LineupsLoaded([...lineups, event.lineup], catalog));
+        final index = lineups.indexWhere((lineup) => lineup.id == event.lineup.id);
+        emit(
+          LineupsLoaded(index < 0 ? [...lineups, event.lineup] : (List.of(lineups)..[index] = event.lineup), catalog),
+        );
       }
     });
   }

@@ -1,5 +1,6 @@
 import 'package:blocs/blocs.dart';
 import 'package:domain/domain.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,11 +40,21 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/lineups/new',
-        builder: (context, state) => BlocProvider(
-          create: (_) => LineupEditorBloc(saveLineup: context.read<AppDependencies>().saveLineup),
-          child: const LineupEditorScreen(),
-        ),
+        builder: (context, state) => _lineupEditor(context, switch ((state.uri.queryParameters['from'], state.extra)) {
+          (final from?, final TacticVariant variant) => LineupEditorState.fromVariant(TacticId(from), variant),
+          _ => const LineupEditorState(),
+        }),
+      ),
+      GoRoute(
+        path: '/lineups/:id',
+        redirect: (context, state) => state.extra is PersonalLineup ? null : '/lineups',
+        builder: (context, state) => _lineupEditor(context, LineupEditorState.edit(state.extra! as PersonalLineup)),
       ),
     ],
   );
 }
+
+Widget _lineupEditor(BuildContext context, LineupEditorState initial) => BlocProvider(
+  create: (_) => LineupEditorBloc(saveLineup: context.read<AppDependencies>().saveLineup, initial: initial),
+  child: const LineupEditorScreen(),
+);

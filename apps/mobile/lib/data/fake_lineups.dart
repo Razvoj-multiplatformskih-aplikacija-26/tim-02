@@ -19,7 +19,12 @@ final class FakeLineups implements LineupRepository {
   @override
   Future<PersonalLineup> save(PersonalLineup lineup) async {
     await Future<void>.delayed(latency);
-    _lineups.add(lineup);
+    final index = _lineups.indexWhere((saved) => saved.id == lineup.id);
+    if (index < 0) {
+      _lineups.add(lineup);
+    } else {
+      _lineups[index] = lineup;
+    }
     return lineup;
   }
 

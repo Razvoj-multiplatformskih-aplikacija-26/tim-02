@@ -9,6 +9,13 @@ final class SaveLineup {
   final LineupRepository lineups;
   final Clock clock;
 
-  Future<PersonalLineup> call({required LineupName name, required Lineup lineup}) =>
-      lineups.save(PersonalLineup(id: LineupId('l-${clock.now().microsecondsSinceEpoch}'), name: name, lineup: lineup));
+  Future<PersonalLineup> call({LineupId? id, required LineupName name, required Lineup lineup, TacticId? basedOn}) =>
+      lineups.save(
+        PersonalLineup(
+          id: id ?? LineupId('l-${clock.now().microsecondsSinceEpoch}'),
+          name: name,
+          lineup: lineup,
+          basedOn: basedOn,
+        ),
+      );
 }

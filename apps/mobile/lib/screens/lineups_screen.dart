@@ -23,7 +23,7 @@ class LineupsScreen extends StatelessWidget {
           LineupsFailure() => FailureView(onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested())),
           LineupsLoaded(lineups: []) => const EmptyView(title: 'Još nemate postava.'),
           LineupsLoaded(:final lineups) => ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 96),
             children: [for (final lineup in lineups) _LineupCard(lineup: lineup)],
           ),
         },
@@ -41,19 +41,36 @@ class _LineupCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(lineup.name.text, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 4),
-          Text(
-            formatChampionCount(lineup.lineup.placements.length),
-            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+      padding: const EdgeInsets.only(bottom: 16),
+      child: InkWell(
+        onTap: () => context.push('/lineups/${lineup.id.value}', extra: lineup),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      lineup.name.text,
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Icon(Icons.edit_outlined, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                formatChampionCount(lineup.lineup.placements.length),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 16),
+              LineupBoard(lineup: lineup.lineup),
+            ],
           ),
-          const SizedBox(height: 16),
-          LineupBoard(lineup: lineup.lineup),
-        ],
+        ),
       ),
     );
   }
