@@ -33,6 +33,7 @@ extension PlaystyleLabel on Playstyle {
     Playstyle.reroll1 => 'Reroll na trošku 1',
     Playstyle.reroll2 => 'Reroll na trošku 2',
     Playstyle.reroll3 => 'Reroll na trošku 3',
+    Playstyle.loseStreak => 'Niz poraza',
   };
 }
 

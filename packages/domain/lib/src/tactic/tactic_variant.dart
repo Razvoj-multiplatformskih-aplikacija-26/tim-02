@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../catalog.dart';
 import '../lineup/lineup.dart';
 
-enum Playstyle { fast9, fast8, reroll1, reroll2, reroll3 }
+enum Playstyle { fast9, fast8, reroll1, reroll2, reroll3, loseStreak }
 
 enum Difficulty { easy, medium, hard }
 

@@ -10,6 +10,7 @@ const ashe = Champion(id: ChampionId('DA_18_Ashe'), name: 'Ashe', cost: 5);
 const azir = Champion(id: ChampionId('DA_18_Azir'), name: 'Azir', cost: 3);
 const brambleback = Champion(id: ChampionId('DA_Brambleback18'), name: 'Brambleback', cost: 4);
 const caitlyn = Champion(id: ChampionId('DA_18_Caitlyn'), name: 'Caitlyn', cost: 2);
+const camille = Champion(id: ChampionId('DA_18_Camille'), name: 'Camille', cost: 1);
 const cassiopeia = Champion(id: ChampionId('DA_18_Cassiopeia'), name: 'Cassiopeia', cost: 3);
 const cinderling = Champion(id: ChampionId('DA_Cinderling18'), name: 'Cinderling', cost: 1);
 const diana = Champion(id: ChampionId('DA_18_Diana'), name: 'Diana', cost: 3);
@@ -70,6 +71,7 @@ const zyra = Champion(id: ChampionId('DA_18_Zyra'), name: 'Zyra', cost: 4);
 const adaptiveHelm = Item(id: ItemId('DA_AdaptiveHelm'), name: 'Adaptive Helm');
 const archangelsStaff = Item(id: ItemId('DA_ArchangelsStaff'), name: "Archangel's Staff");
 const bfSword = Item(id: ItemId('DA_Component_BFSword'), name: 'B.F. Sword');
+const blackthornEmblem = Item(id: ItemId('DA_18_EmblemBlackthorn'), name: 'Blackthorn Emblem');
 const bloodthirster = Item(id: ItemId('DA_Bloodthirster'), name: 'Bloodthirster');
 const blueBuff = Item(id: ItemId('DA_BlueBuff'), name: 'Blue Buff');
 const brambleVest = Item(id: ItemId('DA_BrambleVest'), name: 'Bramble Vest');
@@ -91,15 +93,19 @@ const giantSlayer = Item(id: ItemId('DA_GiantSlayer'), name: 'Giant Slayer');
 const guinsoosRageblade = Item(id: ItemId('DA_GuinsoosRageblade'), name: "Guinsoo's Rageblade");
 const handOfJustice = Item(id: ItemId('DA_HandOfJustice'), name: 'Hand of Justice');
 const hextechGunblade = Item(id: ItemId('DA_HextechGunblade'), name: 'Hextech Gunblade');
+const hunterEmblem = Item(id: ItemId('DA_18_EmblemHunter'), name: 'Hunter Emblem');
 const infernoEmblem = Item(id: ItemId('DA_18_EmblemInferno'), name: 'Inferno Emblem');
 const infinityEdge = Item(id: ItemId('DA_InfinityEdge'), name: 'Infinity Edge');
+const invokerEmblem = Item(id: ItemId('DA_18_EmblemInvoker'), name: 'Invoker Emblem');
 const ionicSpark = Item(id: ItemId('DA_IonicSpark'), name: 'Ionic Spark');
 const jeweledGauntlet = Item(id: ItemId('DA_JeweledGauntlet'), name: 'Jeweled Gauntlet');
+const juggernautEmblem = Item(id: ItemId('DA_18_EmblemJuggernaut'), name: 'Juggernaut Emblem');
 const krakensFury = Item(id: ItemId('DA_KrakensFury'), name: "Kraken's Fury");
 const lastWhisper = Item(id: ItemId('DA_LastWhisper'), name: 'Last Whisper');
 const lunarEmblem = Item(id: ItemId('DA_18_EmblemLunar'), name: 'Lunar Emblem');
 const morellonomicon = Item(id: ItemId('DA_Morellonomicon'), name: 'Morellonomicon');
 const needlesslyLargeRod = Item(id: ItemId('DA_Component_NeedlesslyLargeRod'), name: 'Needlessly Large Rod');
+const negatronCloak = Item(id: ItemId('DA_Component_NegatronCloak'), name: 'Negatron Cloak');
 const protectorsVow = Item(id: ItemId('DA_ProtectorsVow'), name: "Protector's Vow");
 const quicksilver = Item(id: ItemId('DA_Quicksilver'), name: 'Quicksilver');
 const rabadonsDeathcap = Item(id: ItemId('DA_RabadonsDeathcap'), name: "Rabadon's Deathcap");
@@ -131,6 +137,7 @@ const seedCatalog = Catalog(
     azir,
     brambleback,
     caitlyn,
+    camille,
     cassiopeia,
     cinderling,
     diana,
@@ -192,6 +199,7 @@ const seedCatalog = Catalog(
     adaptiveHelm,
     archangelsStaff,
     bfSword,
+    blackthornEmblem,
     bloodthirster,
     blueBuff,
     brambleVest,
@@ -213,15 +221,19 @@ const seedCatalog = Catalog(
     guinsoosRageblade,
     handOfJustice,
     hextechGunblade,
+    hunterEmblem,
     infernoEmblem,
     infinityEdge,
+    invokerEmblem,
     ionicSpark,
     jeweledGauntlet,
+    juggernautEmblem,
     krakensFury,
     lastWhisper,
     lunarEmblem,
     morellonomicon,
     needlesslyLargeRod,
+    negatronCloak,
     protectorsVow,
     quicksilver,
     rabadonsDeathcap,
