@@ -100,4 +100,52 @@ void main() {
           .having((s) => s.isBusy, 'busy', isFalse),
     ],
   );
+
+  blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc leaves only hidden tactics visible under the Hidden filter',
+    build: () => blocWith(
+      FakeTactics(
+        tactics: [
+          tactic('t-1', marko, const Draft()),
+          tactic('t-2', luka, Published(at: now)),
+          tactic(
+            't-3',
+            marko,
+            Hidden(reason: HideReason.parse('Kopija tuđe taktike').valueOrNull!, by: const UserId('u-ana'), at: now),
+          ),
+        ],
+      ),
+    ),
+    act: (bloc) async {
+      bloc.add(const TacticsRequested());
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded);
+      bloc.add(const TacticsFilterChanged(TacticStatusKind.hidden));
+    },
+    skip: 2,
+    expect: () => [
+      isA<TacticsLoaded>().having((s) => s.visible.map((t) => t.id), 'visible', [const TacticId('t-3')]),
+    ],
+  );
+
+  blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc matches the search against the title and the author and keeps it across a reload',
+    build: () => blocWith(
+      FakeTactics(
+        tactics: [
+          tactic('t-1', marko, const Draft()),
+          tactic('t-2', luka, Published(at: now)),
+        ],
+      ),
+    ),
+    act: (bloc) async {
+      bloc.add(const TacticsRequested());
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded);
+      bloc.add(const TacticsSearchChanged(' LUKA'));
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded && s.search.isNotEmpty);
+      final refresh = TacticsRefreshed();
+      bloc.add(refresh);
+      await refresh.handled;
+    },
+    verify: (bloc) => expect((bloc.state as TacticsLoaded).visible.map((t) => t.id), [const TacticId('t-2')]),
+  );
 }

@@ -36,6 +36,8 @@ final class TacticsLoaded extends TacticsState {
     required this.tactics,
     required this.tierList,
     this.actions = const {},
+    this.filter,
+    this.search = '',
     this.inFlightId,
     this.notice,
   });
@@ -44,19 +46,33 @@ final class TacticsLoaded extends TacticsState {
   final List<Tactic> tactics;
   final TierList tierList;
   final Map<TacticId, Set<TacticAction>> actions;
+  final TacticStatusKind? filter;
+  final String search;
   final TacticId? inFlightId;
   final TacticsNotice? notice;
 
   @override
-  List<Object?> get props => [user, tactics, tierList, actions, inFlightId, notice];
+  List<Object?> get props => [user, tactics, tierList, actions, filter, search, inFlightId, notice];
 
   @override
   String toString() => [
     'TacticsLoaded(${tactics.length} tactics, patch ${tierList.patch.value}',
+    if (filter case final filter?) ', only ${filter.name}',
+    if (search.isNotEmpty) ', matching "$search"',
     if (inFlightId case final id?) ', in flight ${id.value}',
     if (notice case final notice?) ', ${notice.runtimeType}',
     ')',
   ].join();
+
+  List<Tactic> get visible {
+    final words = search.trim().toLowerCase();
+    return [
+      for (final t in tactics)
+        if ((filter == null || t.status.kind == filter) &&
+            (t.title.toLowerCase().contains(words) || t.authorName.toLowerCase().contains(words)))
+          t,
+    ];
+  }
 
   List<Tactic> get mine => tactics.where((t) => t.authorId == user.id).toList();
 
@@ -68,11 +84,31 @@ final class TacticsLoaded extends TacticsState {
 
   Set<TacticAction> actionsFor(TacticId id) => actions[id] ?? const {};
 
-  TacticsLoaded withInFlight(TacticId id) =>
-      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, inFlightId: id);
+  TacticsLoaded withFilter(TacticStatusKind? filter) =>
+      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, filter: filter, search: search);
 
-  TacticsLoaded withNotice(TacticsNotice? notice) =>
-      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, notice: notice);
+  TacticsLoaded withSearch(String search) =>
+      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, filter: filter, search: search);
+
+  TacticsLoaded withInFlight(TacticId id) => TacticsLoaded(
+    user: user,
+    tactics: tactics,
+    tierList: tierList,
+    actions: actions,
+    filter: filter,
+    search: search,
+    inFlightId: id,
+  );
+
+  TacticsLoaded withNotice(TacticsNotice? notice) => TacticsLoaded(
+    user: user,
+    tactics: tactics,
+    tierList: tierList,
+    actions: actions,
+    filter: filter,
+    search: search,
+    notice: notice,
+  );
 }
 
 sealed class TacticsNotice extends Equatable {
