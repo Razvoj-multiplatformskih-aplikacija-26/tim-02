@@ -8,8 +8,7 @@ import 'dependencies.dart';
 import 'screens/comps_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/lineup_editor_screen.dart';
-import 'screens/lineups_screen.dart';
-import 'screens/my_tactics_screen.dart';
+import 'screens/mine_screen.dart';
 import 'screens/tactic_detail_screen.dart';
 
 GoRouter createRouter() {
@@ -23,10 +22,12 @@ GoRouter createRouter() {
             routes: [GoRoute(path: '/', builder: (context, state) => const CompsScreen())],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: '/mine', builder: (context, state) => const MyTacticsScreen())],
-          ),
-          StatefulShellBranch(
-            routes: [GoRoute(path: '/lineups', builder: (context, state) => const LineupsScreen())],
+            routes: [
+              GoRoute(
+                path: '/mine',
+                builder: (context, state) => MineScreen(archived: state.uri.queryParameters['archived'] == '1'),
+              ),
+            ],
           ),
         ],
       ),
@@ -47,7 +48,7 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/lineups/:id',
-        redirect: (context, state) => state.extra is PersonalLineup ? null : '/lineups',
+        redirect: (context, state) => state.extra is PersonalLineup ? null : '/mine',
         builder: (context, state) => _lineupEditor(context, LineupEditorState.edit(state.extra! as PersonalLineup)),
       ),
     ],

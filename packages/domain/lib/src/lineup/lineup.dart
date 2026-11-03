@@ -67,6 +67,18 @@ final class Lineup extends Equatable {
       if (placement.position != position) placement,
   ]);
 
+  Champion? get carry => placements.fold<Placement?>(null, _carryOf)?.unit.champion;
+
+  static Placement _carryOf(Placement? carry, Placement next) {
+    if (carry == null) return next;
+    final order = [
+      next.unit.items.length.compareTo(carry.unit.items.length),
+      next.position.row.compareTo(carry.position.row),
+      next.unit.champion.cost.compareTo(carry.unit.champion.cost),
+    ].firstWhere((order) => order != 0, orElse: () => 0);
+    return order >= 0 ? next : carry;
+  }
+
   @override
   List<Object?> get props => [placements];
 }

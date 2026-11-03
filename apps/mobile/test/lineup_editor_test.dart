@@ -19,7 +19,7 @@ void main() {
 
   Future<void> openEditor(WidgetTester tester) async {
     await pumpOnPhone(tester);
-    await openTab(tester, 'Moje postave');
+    await openTab(tester, 'Moje kompozicije');
     await tester.tap(find.text('Nova postava'));
     await tester.pumpAndSettle();
   }
@@ -68,12 +68,12 @@ void main() {
       300,
       scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)),
     );
-    expect(find.text('1 šampion'), findsOneWidget);
+    expect(find.text('Moja postava'), findsOneWidget);
   });
 
   testWidgets('renames a saved lineup without adding another', (tester) async {
     await pumpOnPhone(tester);
-    await openTab(tester, 'Moje postave');
+    await openTab(tester, 'Moje kompozicije');
     await tester.tap(find.text('Fae Ezreal za rangirano'));
     await tester.pumpAndSettle();
     expect(find.text('UREDI POSTAVU'), findsOneWidget);
@@ -100,7 +100,7 @@ void main() {
     expect(find.text('Postava je sačuvana.'), findsOneWidget);
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
-    await openTab(tester, 'Moje postave');
+    await openTab(tester, 'Moje kompozicije');
     await tester.scrollUntilVisible(
       find.text('Draven Ezreal 9'),
       300,

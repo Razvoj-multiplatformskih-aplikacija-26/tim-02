@@ -8,28 +8,29 @@ class HomeShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: shell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: shell.currentIndex,
-        onDestinationSelected: (index) => shell.goBranch(index, initialLocation: index == shell.currentIndex),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.leaderboard_outlined),
-            selectedIcon: Icon(Icons.leaderboard),
-            label: 'Kompozicije',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: 'Moje taktike',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.hexagon_outlined),
-            selectedIcon: Icon(Icons.hexagon),
-            label: 'Moje postave',
-          ),
-        ],
+    return PopScope(
+      canPop: shell.currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) shell.goBranch(0);
+      },
+      child: Scaffold(
+        body: shell,
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: shell.currentIndex,
+          onDestinationSelected: (index) => shell.goBranch(index, initialLocation: index == shell.currentIndex),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.leaderboard_outlined),
+              selectedIcon: Icon(Icons.leaderboard),
+              label: 'Kompozicije',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Moje kompozicije',
+            ),
+          ],
+        ),
       ),
     );
   }

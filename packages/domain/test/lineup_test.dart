@@ -50,5 +50,19 @@ void main() {
           .remove(corner);
       expect(lineup.place(Placement(unit: Unit.parse(zyra).valueOrNull!, position: corner)).isSuccess, isTrue);
     });
+
+    test('takes the champion with the most items, then the one furthest back, as its carry', () {
+      final front = HexPosition.parse(0, 0).valueOrNull!;
+      Lineup board({required int frontItems, required int backItems}) {
+        final zyraInFront = Unit.parse(zyra, items: items.take(frontItems).toList()).valueOrNull!;
+        final ahriInBack = Unit.parse(ahri, items: items.take(backItems).toList()).valueOrNull!;
+        final first = const Lineup.empty().place(Placement(unit: zyraInFront, position: front)).valueOrNull!;
+        return first.place(Placement(unit: ahriInBack, position: corner)).valueOrNull!;
+      }
+
+      expect(board(frontItems: 3, backItems: 1).carry, zyra);
+      expect(board(frontItems: 3, backItems: 3).carry, ahri);
+      expect(const Lineup.empty().carry, isNull);
+    });
   });
 }

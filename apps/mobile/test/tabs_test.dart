@@ -8,12 +8,12 @@ import 'support.dart';
 void main() {
   setUpAll(() => initializeDateFormatting(serbianLatin));
 
-  testWidgets('shows everyone in Kompozicije and only Marko in Moje taktike', (tester) async {
+  testWidgets('shows everyone in Kompozicije and only Marko in Moje kompozicije', (tester) async {
     await pumpApp(tester);
     expect(find.text('Ahri Spellweaver'), findsOneWidget);
     expect(find.text('AP brzi nivo 9 sa Alune'), findsNothing);
 
-    await openTab(tester, 'Moje taktike');
+    await openTab(tester, 'Moje kompozicije');
     expect(find.text('AP brzi nivo 9 sa Alune'), findsOneWidget);
     expect(find.text('Ahri Spellweaver'), findsNothing);
   });
@@ -57,7 +57,8 @@ void main() {
 
   testWidgets('archives my tactic after confirming in a dialog and keeps it when the request fails', (tester) async {
     await pumpApp(tester);
-    await openTab(tester, 'Moje taktike');
+    await openTab(tester, 'Moje kompozicije');
+    await tester.scrollUntilVisible(find.text('Caitlyn Hunters').hitTestable(), 300);
     await tester.tap(find.text('Caitlyn Hunters'));
     await tester.pumpAndSettle();
 
@@ -85,11 +86,44 @@ void main() {
     expect(find.text('Arhiviraj'), findsNothing);
   });
 
-  testWidgets('lists my saved lineups in the third tab', (tester) async {
+  testWidgets('lists my saved lineups among the drafts', (tester) async {
     await pumpApp(tester);
-    await openTab(tester, 'Moje postave');
-    expect(find.text('MOJE POSTAVE'), findsOneWidget);
+    await openTab(tester, 'Moje kompozicije');
+    expect(find.text('MOJE KOMPOZICIJE'), findsOneWidget);
     expect(find.text('Fae Ezreal za rangirano'), findsOneWidget);
-    expect(find.text('11 šampiona'), findsOneWidget);
+    expect(find.text('AP brzi nivo 9 sa Alune'), findsOneWidget);
+  });
+
+  testWidgets('shows my archived tactics only behind the archive toggle', (tester) async {
+    await pumpApp(tester);
+    await openTab(tester, 'Moje kompozicije');
+    expect(find.text('Veigar reroll'), findsOneWidget);
+    expect(find.text('Warwick reroll'), findsNothing);
+
+    await tester.tap(find.byTooltip('Arhivirane'));
+    await tester.pumpAndSettle();
+    expect(find.text('Warwick reroll'), findsOneWidget);
+    expect(find.text('Caitlyn Hunters'), findsNothing);
+    expect(find.text('Nova postava'), findsNothing);
+
+    await tester.tap(find.byTooltip('Arhivirane'));
+    await tester.pumpAndSettle();
+    expect(find.text('Caitlyn Hunters'), findsOneWidget);
+  });
+
+  testWidgets('goes back from the archive to Moje kompozicije and from there to Kompozicije', (tester) async {
+    await pumpApp(tester);
+    await openTab(tester, 'Moje kompozicije');
+    await tester.tap(find.byTooltip('Arhivirane'));
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Caitlyn Hunters'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('KOMPOZICIJE'), findsOneWidget);
+    expect(find.text('Ahri Spellweaver'), findsOneWidget);
   });
 }
