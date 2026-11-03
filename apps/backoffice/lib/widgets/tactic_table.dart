@@ -3,18 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:ui/ui.dart';
 
 class TacticTable extends StatelessWidget {
-  const TacticTable({super.key, required this.tactics});
+  const TacticTable({super.key, required this.tactics, required this.selectedId, required this.onSelect});
 
   final List<Tactic> tactics;
+  final TacticId? selectedId;
+  final ValueChanged<Tactic> onSelect;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DefaultTextStyle.merge(
-          style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.labelLarge?.copyWith(color: scheme.onSurfaceVariant),
           child: const _TableRow(cells: [Text('Naslov'), Text('Autor'), Text('Stanje'), Text('Izmenjeno')]),
         ),
         const Divider(height: 1),
@@ -24,26 +27,43 @@ class TacticTable extends StatelessWidget {
             separatorBuilder: (context, index) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final tactic = tactics[index];
-              return _TableRow(
-                cells: [
-                  Row(
-                    spacing: 12,
-                    children: [
-                      ChampionHex(champion: tactic.carry, size: 36),
-                      Expanded(
-                        child: Text(
-                          tactic.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall,
+              final selected = tactic.id == selectedId;
+              return Semantics(
+                selected: selected,
+                child: Material(
+                  color: selected ? scheme.surfaceContainerHigh : Colors.transparent,
+                  child: InkWell(
+                    onTap: () => onSelect(tactic),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: BorderDirectional(
+                          start: BorderSide(color: selected ? scheme.primary : Colors.transparent, width: 3),
                         ),
                       ),
-                    ],
+                      child: _TableRow(
+                        cells: [
+                          Row(
+                            spacing: 12,
+                            children: [
+                              ChampionHex(champion: tactic.carry, size: 36),
+                              Expanded(
+                                child: Text(
+                                  tactic.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(tactic.authorName),
+                          StatusBadge(status: tactic.status),
+                          Text(formatDate(tactic.updatedAt)),
+                        ],
+                      ),
+                    ),
                   ),
-                  Text(tactic.authorName),
-                  StatusBadge(status: tactic.status),
-                  Text(formatDate(tactic.updatedAt)),
-                ],
+                ),
               );
             },
           ),

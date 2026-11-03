@@ -35,6 +35,10 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
       final current = state;
       if (current is TacticsLoaded) emit(current.withSearch(event.search));
     });
+    on<TacticSelected>((event, emit) {
+      final current = state;
+      if (current is TacticsLoaded) emit(current.withSelection(event.id));
+    });
     on<TacticActionRequested>(_onActionRequested);
     on<TacticsNoticeAcknowledged>((event, emit) {
       final current = state;
@@ -71,6 +75,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
     final previous = state;
     final filter = previous is TacticsLoaded ? previous.filter : null;
     final search = previous is TacticsLoaded ? previous.search : '';
+    final selectedId = previous is TacticsLoaded ? previous.selectedId : null;
     try {
       final tactics = await getTactics(user);
       if (tactics.isEmpty) {
@@ -86,6 +91,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
           actions: {for (final t in tactics) t.id: allowedActions(t, user, now: now)},
           filter: filter,
           search: search,
+          selectedId: selectedId,
           notice: notice,
         ),
       );

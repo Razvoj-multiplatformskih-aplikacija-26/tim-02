@@ -38,6 +38,7 @@ final class TacticsLoaded extends TacticsState {
     this.actions = const {},
     this.filter,
     this.search = '',
+    this.selectedId,
     this.inFlightId,
     this.notice,
   });
@@ -48,17 +49,19 @@ final class TacticsLoaded extends TacticsState {
   final Map<TacticId, Set<TacticAction>> actions;
   final TacticStatusKind? filter;
   final String search;
+  final TacticId? selectedId;
   final TacticId? inFlightId;
   final TacticsNotice? notice;
 
   @override
-  List<Object?> get props => [user, tactics, tierList, actions, filter, search, inFlightId, notice];
+  List<Object?> get props => [user, tactics, tierList, actions, filter, search, selectedId, inFlightId, notice];
 
   @override
   String toString() => [
     'TacticsLoaded(${tactics.length} tactics, patch ${tierList.patch.value}',
     if (filter case final filter?) ', only ${filter.name}',
     if (search.isNotEmpty) ', matching "$search"',
+    if (selectedId case final id?) ', selected ${id.value}',
     if (inFlightId case final id?) ', in flight ${id.value}',
     if (notice case final notice?) ', ${notice.runtimeType}',
     ')',
@@ -78,17 +81,46 @@ final class TacticsLoaded extends TacticsState {
 
   Map<Tier, List<Tactic>> get comps => tierList.comps(tactics);
 
+  Tactic? get selected => switch (selectedId) {
+    final id? => tactic(id),
+    null => null,
+  };
+
   bool get isBusy => inFlightId != null;
 
   Tactic? tactic(TacticId id) => tactics.where((t) => t.id == id).firstOrNull;
 
   Set<TacticAction> actionsFor(TacticId id) => actions[id] ?? const {};
 
-  TacticsLoaded withFilter(TacticStatusKind? filter) =>
-      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, filter: filter, search: search);
+  TacticsLoaded withFilter(TacticStatusKind? filter) => TacticsLoaded(
+    user: user,
+    tactics: tactics,
+    tierList: tierList,
+    actions: actions,
+    filter: filter,
+    search: search,
+    selectedId: selectedId,
+  );
 
-  TacticsLoaded withSearch(String search) =>
-      TacticsLoaded(user: user, tactics: tactics, tierList: tierList, actions: actions, filter: filter, search: search);
+  TacticsLoaded withSelection(TacticId? id) => TacticsLoaded(
+    user: user,
+    tactics: tactics,
+    tierList: tierList,
+    actions: actions,
+    filter: filter,
+    search: search,
+    selectedId: id,
+  );
+
+  TacticsLoaded withSearch(String search) => TacticsLoaded(
+    user: user,
+    tactics: tactics,
+    tierList: tierList,
+    actions: actions,
+    filter: filter,
+    search: search,
+    selectedId: selectedId,
+  );
 
   TacticsLoaded withInFlight(TacticId id) => TacticsLoaded(
     user: user,
@@ -97,6 +129,7 @@ final class TacticsLoaded extends TacticsState {
     actions: actions,
     filter: filter,
     search: search,
+    selectedId: selectedId,
     inFlightId: id,
   );
 
@@ -107,6 +140,7 @@ final class TacticsLoaded extends TacticsState {
     actions: actions,
     filter: filter,
     search: search,
+    selectedId: selectedId,
     notice: notice,
   );
 }

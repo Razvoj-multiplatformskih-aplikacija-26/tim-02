@@ -28,6 +28,12 @@ final class TacticsSearchChanged extends TacticsEvent {
   final String search;
 }
 
+final class TacticSelected extends TacticsEvent {
+  const TacticSelected(this.id);
+
+  final TacticId? id;
+}
+
 final class TacticActionRequested extends TacticsEvent {
   const TacticActionRequested(this.id, this.action);
 

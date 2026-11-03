@@ -21,6 +21,12 @@ GoRouter createRouter() {
                   return TacticsScreen(
                     filter: TacticStatusKind.values.asNameMap()[query['state']],
                     search: query['q'] ?? '',
+                    selectedId: switch (query['selected']) {
+                      final id? => TacticId(id),
+                      null => null,
+                    },
+                    variant: int.tryParse(query['variant'] ?? '') ?? 0,
+                    early: query['early'] == '1',
                   );
                 },
               ),

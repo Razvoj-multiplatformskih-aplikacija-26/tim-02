@@ -8,16 +8,39 @@ import 'package:ui/ui.dart';
 
 import '../data/fake_tactics.dart';
 import '../dependencies.dart';
+import '../widgets/tactic_panel.dart';
 import '../widgets/tactic_table.dart';
 
 class TacticsScreen extends StatefulWidget {
-  const TacticsScreen({super.key, this.filter, this.search = ''});
+  const TacticsScreen({
+    super.key,
+    this.filter,
+    this.search = '',
+    this.selectedId,
+    this.variant = 0,
+    this.early = false,
+  });
 
   final TacticStatusKind? filter;
   final String search;
+  final TacticId? selectedId;
+  final int variant;
+  final bool early;
 
-  static String pathFor(TacticStatusKind? filter, {String search = ''}) {
-    final query = {if (filter != null) 'state': filter.name, if (search.isNotEmpty) 'q': search};
+  static String pathFor(
+    TacticStatusKind? filter, {
+    String search = '',
+    TacticId? selected,
+    int variant = 0,
+    bool early = false,
+  }) {
+    final query = {
+      if (filter != null) 'state': filter.name,
+      if (search.isNotEmpty) 'q': search,
+      if (selected != null) 'selected': selected.value,
+      if (variant > 0) 'variant': '$variant',
+      if (early) 'early': '1',
+    };
     return Uri(path: '/tactics', queryParameters: query.isEmpty ? null : query).toString();
   }
 
@@ -27,7 +50,6 @@ class TacticsScreen extends StatefulWidget {
 
 class _TacticsScreenState extends State<TacticsScreen> {
   late final _search = TextEditingController(text: widget.search);
-
   TacticsBloc get _bloc => context.read<TacticsBloc>();
 
   @override
@@ -45,7 +67,11 @@ class _TacticsScreenState extends State<TacticsScreen> {
   @override
   void didUpdateWidget(TacticsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filter != widget.filter || oldWidget.search != widget.search) _syncWithRoute();
+    if (oldWidget.filter != widget.filter ||
+        oldWidget.search != widget.search ||
+        oldWidget.selectedId != widget.selectedId) {
+      _syncWithRoute();
+    }
     if (_search.text != widget.search) _search.text = widget.search;
   }
 
@@ -54,7 +80,12 @@ class _TacticsScreenState extends State<TacticsScreen> {
     if (state is! TacticsLoaded) return;
     if (state.filter != widget.filter) _bloc.add(TacticsFilterChanged(widget.filter));
     if (state.search != widget.search) _bloc.add(TacticsSearchChanged(widget.search));
+    if (state.selectedId != widget.selectedId) _bloc.add(TacticSelected(widget.selectedId));
   }
+
+  void _goTo({TacticId? selected, int variant = 0, bool early = false}) => context.go(
+    TacticsScreen.pathFor(widget.filter, search: widget.search, selected: selected, variant: variant, early: early),
+  );
 
   void _simulateOutage(FakeTactics fake) {
     fake.failingRequests = 1;
@@ -119,7 +150,33 @@ class _TacticsScreenState extends State<TacticsScreen> {
           TacticsLoading() => const LoadingView(),
           TacticsFailure() => FailureView(onRetry: () => _bloc.add(const TacticsRequested())),
           TacticsEmpty() => const EmptyView(title: 'Još nema taktika.'),
-          TacticsLoaded() => TacticTable(tactics: state.visible),
+          TacticsLoaded() => Row(
+            children: [
+              Expanded(
+                child: TacticTable(
+                  tactics: state.visible,
+                  selectedId: state.selectedId,
+                  onSelect: (tactic) => _goTo(selected: tactic.id),
+                ),
+              ),
+              if (state.selected case final selected?) ...[
+                const VerticalDivider(width: 1),
+                SizedBox(
+                  width: 360,
+                  child: TacticPanel(
+                    key: ValueKey(selected.id),
+                    tactic: selected,
+                    tier: state.tierList.tierOf(selected),
+                    variant: widget.variant,
+                    early: widget.early,
+                    onVariantSelected: (index) => _goTo(selected: selected.id, variant: index, early: widget.early),
+                    onEarlySelected: (value) => _goTo(selected: selected.id, variant: widget.variant, early: value),
+                    onClose: _goTo,
+                  ),
+                ),
+              ],
+            ],
+          ),
         },
       ),
     );
