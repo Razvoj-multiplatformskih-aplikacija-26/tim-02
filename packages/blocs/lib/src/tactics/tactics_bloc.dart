@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:domain/domain.dart';
 import 'package:equatable/equatable.dart';
@@ -17,6 +19,13 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
     on<TacticsRequested>((event, emit) async {
       emit(const TacticsLoading());
       await _reload(emit);
+    });
+    on<TacticsRefreshed>((event, emit) async {
+      try {
+        await _reload(emit);
+      } finally {
+        event._handled.complete();
+      }
     });
     on<TacticActionRequested>(_onActionRequested);
     on<TacticsNoticeAcknowledged>((event, emit) {

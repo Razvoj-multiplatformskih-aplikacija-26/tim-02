@@ -32,6 +32,20 @@ void main() {
     expect(find.text('Ahri Spellweaver'), findsOneWidget);
   });
 
+  testWidgets('simulates an empty answer from the debug menu and pulls the comps back', (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Prazan odgovor'));
+    await tester.pumpAndSettle();
+    expect(find.text('Za ovaj patch još nema kompozicija.'), findsOneWidget);
+
+    await tester.fling(find.text('Za ovaj patch još nema kompozicija.'), const Offset(0, 300), 1000);
+    await tester.pumpAndSettle();
+    expect(find.text('Ahri Spellweaver'), findsOneWidget);
+  });
+
   testWidgets('opens a tactic from Kompozicije and switches its variant and board', (tester) async {
     await pumpApp(tester);
 

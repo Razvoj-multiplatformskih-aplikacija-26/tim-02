@@ -17,18 +17,25 @@ class EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.inbox_outlined, size: 56, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(height: 20),
-            Text(title, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
-          ],
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 56, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 20),
+                  Text(title, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -41,27 +48,38 @@ class FailureView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off_outlined, size: 56, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(height: 20),
-            Semantics(
-              liveRegion: true,
-              child: Text(
-                'Podaci trenutno nisu dostupni.',
-                style: theme.textTheme.titleLarge,
-                textAlign: TextAlign.center,
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.cloud_off_outlined, size: 56, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 20),
+                  Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      'Podaci trenutno nisu dostupni.',
+                      style: theme.textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Pokušaj ponovo'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            FilledButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: const Text('Pokušaj ponovo')),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

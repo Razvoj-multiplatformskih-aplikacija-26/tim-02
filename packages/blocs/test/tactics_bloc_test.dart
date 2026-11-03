@@ -60,6 +60,21 @@ void main() {
     expect: () => [const TacticsLoading(), const TacticsEmpty()],
   );
 
+  late FakeTactics source;
+  blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc refreshes without the loader and finishes the pull',
+    build: () => blocWith(source = FakeTactics()),
+    act: (bloc) async {
+      bloc.add(const TacticsRequested());
+      await bloc.stream.firstWhere((s) => s is TacticsEmpty);
+      source.tactics.add(tactic('t-1', marko, const Draft()));
+      final refresh = TacticsRefreshed();
+      bloc.add(refresh);
+      await refresh.handled;
+    },
+    expect: () => [const TacticsLoading(), const TacticsEmpty(), isA<TacticsLoaded>()],
+  );
+
   blocTest<TacticsBloc, TacticsState>(
     'TacticsBloc reports a failed request',
     build: () => blocWith(FakeTactics(failing: true)),

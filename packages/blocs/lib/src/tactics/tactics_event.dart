@@ -8,6 +8,14 @@ final class TacticsRequested extends TacticsEvent {
   const TacticsRequested();
 }
 
+final class TacticsRefreshed extends TacticsEvent {
+  TacticsRefreshed();
+
+  final _handled = Completer<void>();
+
+  Future<void> get handled => _handled.future;
+}
+
 final class TacticActionRequested extends TacticsEvent {
   const TacticActionRequested(this.id, this.action);
 

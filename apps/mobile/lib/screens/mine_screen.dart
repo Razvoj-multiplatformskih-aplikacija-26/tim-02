@@ -14,6 +14,12 @@ class MineScreen extends StatelessWidget {
 
   final bool archived;
 
+  Future<void> _refresh(TacticsBloc bloc) {
+    final refresh = TacticsRefreshed();
+    bloc.add(refresh);
+    return refresh.handled;
+  }
+
   List<Widget> _sections(BuildContext context, List<PersonalLineup> lineups, List<Tactic> mine) {
     List<Widget> tactics(Set<TacticStatusKind> kinds) => [
       for (final tactic in mine)
@@ -69,25 +75,28 @@ class MineScreen extends StatelessWidget {
               icon: const Icon(Icons.add),
               label: const Text('Nova postava'),
             ),
-      body: BlocBuilder<TacticsBloc, TacticsState>(
-        builder: (context, tacticsState) => BlocBuilder<LineupsBloc, LineupsState>(
-          builder: (context, lineupsState) => switch ((tacticsState, lineupsState)) {
-            (TacticsFailure(), _) => FailureView(
-              onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
-            ),
-            (_, LineupsFailure()) => FailureView(
-              onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested()),
-            ),
-            (TacticsLoading(), _) || (_, LineupsLoading()) => const LoadingView(),
-            (_, LineupsLoaded(:final lineups)) => switch (_sections(
-              context,
-              lineups,
-              tacticsState is TacticsLoaded ? tacticsState.mine : const [],
-            )) {
-              [] => EmptyView(title: archived ? 'Nemate arhiviranih kompozicija.' : 'Još nemate svojih kompozicija.'),
-              final sections => ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: sections),
+      body: RefreshIndicator(
+        onRefresh: () => _refresh(context.read<TacticsBloc>()),
+        child: BlocBuilder<TacticsBloc, TacticsState>(
+          builder: (context, tacticsState) => BlocBuilder<LineupsBloc, LineupsState>(
+            builder: (context, lineupsState) => switch ((tacticsState, lineupsState)) {
+              (TacticsFailure(), _) => FailureView(
+                onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
+              ),
+              (_, LineupsFailure()) => FailureView(
+                onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested()),
+              ),
+              (TacticsLoading(), _) || (_, LineupsLoading()) => const LoadingView(),
+              (_, LineupsLoaded(:final lineups)) => switch (_sections(
+                context,
+                lineups,
+                tacticsState is TacticsLoaded ? tacticsState.mine : const [],
+              )) {
+                [] => EmptyView(title: archived ? 'Nemate arhiviranih kompozicija.' : 'Još nemate svojih kompozicija.'),
+                final sections => ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: sections),
+              },
             },
-          },
+          ),
         ),
       ),
     );
