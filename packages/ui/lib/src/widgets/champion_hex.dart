@@ -50,15 +50,20 @@ class ChampionHex extends StatelessWidget {
 }
 
 class EmptyHex extends StatelessWidget {
-  const EmptyHex({super.key, this.size = 64});
+  const EmptyHex({super.key, this.size = 64, this.color});
 
   final double size;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return ClipPath(
       clipper: const _Hexagon(),
-      child: Container(width: size * 0.87, height: size, color: Theme.of(context).colorScheme.surfaceContainerHighest),
+      child: Container(
+        width: size * 0.87,
+        height: size,
+        color: color ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
     );
   }
 }

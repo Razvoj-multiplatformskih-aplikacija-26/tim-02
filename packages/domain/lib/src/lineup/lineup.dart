@@ -67,6 +67,16 @@ final class Lineup extends Equatable {
       if (placement.position != position) placement,
   ]);
 
+  Lineup move(HexPosition from, HexPosition to) => Lineup._([
+    for (final placement in placements)
+      if (placement.position == from)
+        Placement(unit: placement.unit, position: to)
+      else if (placement.position == to)
+        Placement(unit: placement.unit, position: from)
+      else
+        placement,
+  ]);
+
   Champion? get carry => placements.fold<Placement?>(null, _carryOf)?.unit.champion;
 
   static Placement _carryOf(Placement? carry, Placement next) {

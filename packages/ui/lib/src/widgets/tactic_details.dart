@@ -11,7 +11,6 @@ class TacticDetails extends StatelessWidget {
   const TacticDetails({
     super.key,
     required this.tactic,
-    required this.patch,
     required this.tier,
     required this.variant,
     required this.early,
@@ -20,7 +19,6 @@ class TacticDetails extends StatelessWidget {
   });
 
   final Tactic tactic;
-  final PatchId patch;
   final Tier? tier;
   final int variant;
   final bool early;
@@ -49,7 +47,7 @@ class TacticDetails extends StatelessWidget {
                   Text(tactic.title, style: theme.textTheme.headlineSmall),
                   const SizedBox(height: 4),
                   Text(
-                    '${tactic.authorName} · ${formatDate(tactic.updatedAt)}',
+                    '${tactic.authorName} · izmenjeno ${formatDate(tactic.updatedAt)}',
                     style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 12),
@@ -57,7 +55,7 @@ class TacticDetails extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      StatusBadge(status: status),
+                      if (status is! Published) StatusBadge(status: status),
                       if (tier case final tier?)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -65,7 +63,10 @@ class TacticDetails extends StatelessWidget {
                             border: Border.all(color: scheme.outline),
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: Text('Patch ${patch.value}: ${tier.label}', style: theme.textTheme.labelMedium),
+                          child: Text(
+                            tier == Tier.situational ? tier.label : 'Tier ${tier.label}',
+                            style: theme.textTheme.labelMedium,
+                          ),
                         ),
                     ],
                   ),
@@ -99,15 +100,15 @@ class TacticDetails extends StatelessWidget {
         Text(tactic.description, style: theme.textTheme.bodyLarge),
         if (variants.isNotEmpty) ...[
           const SizedBox(height: 32),
-          Row(
-            children: [
-              Semantics(header: true, child: Text('VARIJANTE', style: theme.textTheme.headlineSmall)),
-              const SizedBox(width: 12),
-              Expanded(child: Divider(color: scheme.outlineVariant)),
-            ],
-          ),
-          const SizedBox(height: 12),
           if (variants.length > 1) ...[
+            Row(
+              children: [
+                Semantics(header: true, child: Text('VARIJANTE', style: theme.textTheme.headlineSmall)),
+                const SizedBox(width: 12),
+                Expanded(child: Divider(color: scheme.outlineVariant)),
+              ],
+            ),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -122,7 +123,12 @@ class TacticDetails extends StatelessWidget {
             ),
             const SizedBox(height: 16),
           ],
-          _VariantView(variant: variants[selected], early: early, onEarlySelected: onEarlySelected),
+          _VariantView(
+            variant: variants[selected],
+            named: variants.length > 1,
+            early: early,
+            onEarlySelected: onEarlySelected,
+          ),
         ],
       ],
     );
@@ -130,9 +136,10 @@ class TacticDetails extends StatelessWidget {
 }
 
 class _VariantView extends StatelessWidget {
-  const _VariantView({required this.variant, required this.early, required this.onEarlySelected});
+  const _VariantView({required this.variant, required this.named, required this.early, required this.onEarlySelected});
 
   final TacticVariant variant;
+  final bool named;
   final bool early;
   final ValueChanged<bool> onEarlySelected;
 
@@ -143,7 +150,7 @@ class _VariantView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '${variant.name} · ${variant.playstyle.label} · ${variant.difficulty.label}',
+          [if (named) variant.name, variant.playstyle.label, variant.difficulty.label].join(' · '),
           style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 16),
@@ -157,7 +164,7 @@ class _VariantView extends StatelessWidget {
           onSelectionChanged: (selection) => onEarlySelected(selection.single),
         ),
         const SizedBox(height: 20),
-        LineupBoard(lineup: early ? variant.early : variant.lineup),
+        LineupBoard(lineup: early ? variant.early : variant.lineup, onUnitTap: (unit) => _showUnit(context, unit)),
         if (variant.flex.isNotEmpty)
           _Part(
             label: 'Fleksibilne jedinice',
@@ -168,7 +175,10 @@ class _VariantView extends StatelessWidget {
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [for (final item in variant.itemPriority) ItemIcon(item: item, size: 36)],
+            children: [
+              for (final item in variant.itemPriority)
+                ItemIcon(item: item, size: 36, triggerMode: TooltipTriggerMode.tap),
+            ],
           ),
         ),
         _Part(
@@ -224,25 +234,56 @@ class _Units extends StatelessWidget {
       runSpacing: 16,
       children: [
         for (final unit in units)
-          SizedBox(
-            width: 60,
-            child: Column(
-              children: [
-                UnitHex(unit: unit, size: 56),
-                const SizedBox(height: 10),
-                ExcludeSemantics(
-                  child: Text(
-                    unit.champion.name,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall,
+          InkWell(
+            onTap: () => _showUnit(context, unit),
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 60,
+              child: Column(
+                children: [
+                  UnitHex(unit: unit, size: 56),
+                  const SizedBox(height: 10),
+                  ExcludeSemantics(
+                    child: Text(
+                      unit.champion.name,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
       ],
     );
   }
+}
+
+void _showUnit(BuildContext context, Unit unit) {
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (context) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: UnitHex(unit: unit, size: 56),
+            title: Text(unit.champion.name, style: Theme.of(context).textTheme.titleLarge),
+            subtitle: Text('${'★' * unit.stars} · jedinica od ${unit.champion.cost} zlatnika'),
+          ),
+          for (final item in unit.items)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: ItemIcon(item: item, size: 36),
+              title: Text(item.name),
+            ),
+        ],
+      ),
+    ),
+  );
 }

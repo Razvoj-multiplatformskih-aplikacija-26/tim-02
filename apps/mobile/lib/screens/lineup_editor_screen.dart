@@ -13,13 +13,41 @@ class LineupEditorScreen extends StatelessWidget {
     switch (state.status) {
       case LineupEditorStatus.saved:
         context.read<LineupsBloc>().add(LineupSaved(state.saved!));
-        messenger.showSnackBar(const SnackBar(content: Text('Postava je sačuvana.')));
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(const SnackBar(content: Text('Postava je sačuvana.')));
+        if (state.basedOn != null && state.id == null) {
+          context.go('/mine');
+        } else {
+          context.pop();
+        }
+      case LineupEditorStatus.deleted:
+        context.read<LineupsBloc>().add(LineupDeleted(state.id!));
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(const SnackBar(content: Text('Postava je obrisana.')));
         context.pop();
       case LineupEditorStatus.failed:
-        messenger.showSnackBar(const SnackBar(content: Text('Postava nije sačuvana.')));
+        messenger.showSnackBar(const SnackBar(content: Text('Izmena nije sačuvana.')));
       case LineupEditorStatus.editing || LineupEditorStatus.saving:
         break;
     }
+  }
+
+  Future<void> _delete(BuildContext context) async {
+    final bloc = context.read<LineupEditorBloc>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog.adaptive(
+        title: const Text('Obrisati postavu?'),
+        content: const Text('Postava se briše sa ovog uređaja.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Odustani')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Obriši')),
+        ],
+      ),
+    );
+    if (confirmed ?? false) bloc.add(const LineupEditorDeleted());
   }
 
   @override
@@ -30,28 +58,60 @@ class LineupEditorScreen extends StatelessWidget {
       listener: _onStateChanged,
       builder: (context, state) {
         final saving = state.status == LineupEditorStatus.saving;
-        return Scaffold(
-          appBar: AppBar(title: Text(state.id == null ? 'NOVA POSTAVA' : 'UREDI POSTAVU')),
-          body: BlocBuilder<LineupsBloc, LineupsState>(
-            builder: (context, lineups) => switch (lineups) {
-              LineupsLoading() => const LoadingView(),
-              LineupsFailure() => FailureView(onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested())),
-              LineupsLoaded(:final catalog) => _Editor(state: state, catalog: catalog),
-            },
-          ),
-          bottomNavigationBar: SafeArea(
-            minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: FilledButton(
-              onPressed: saving ? null : () => bloc.add(const LineupEditorSubmitted()),
-              child: saving
-                  ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
-                  : const Text('Sačuvaj'),
+        return PopScope(
+          canPop: !state.dirty,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (!didPop && await confirmDiscard(context) && context.mounted) context.pop();
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(state.id == null ? 'NOVA POSTAVA' : 'UREDI POSTAVU'),
+              actions: [
+                if (state.id != null)
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Obriši postavu',
+                    onPressed: saving ? null : () => _delete(context),
+                  ),
+              ],
+            ),
+            body: BlocBuilder<LineupsBloc, LineupsState>(
+              builder: (context, lineups) => switch (lineups) {
+                LineupsLoading() => const LoadingView(),
+                LineupsFailure() => FailureView(
+                  onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested()),
+                ),
+                LineupsLoaded(:final catalog) => _Editor(state: state, catalog: catalog),
+              },
+            ),
+            bottomNavigationBar: SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: FilledButton(
+                onPressed: saving ? null : () => bloc.add(const LineupEditorSubmitted()),
+                child: saving
+                    ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
+                    : const Text('Sačuvaj'),
+              ),
             ),
           ),
         );
       },
     );
   }
+}
+
+void _remove(BuildContext context, Placement placement) {
+  final bloc = context.read<LineupEditorBloc>();
+  bloc.add(LineupChampionRemoved(placement.position));
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: const Text('Šampion je uklonjen sa table.'),
+        persist: false,
+        action: SnackBarAction(label: 'Poništi', onPressed: () => bloc.add(LineupChampionRestored(placement))),
+      ),
+    );
 }
 
 class _Editor extends StatelessWidget {
@@ -64,8 +124,6 @@ class _Editor extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bloc = context.read<LineupEditorBloc>();
-    final placed = state.placed;
-    final error = placed?.errorOrNull;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
@@ -76,43 +134,86 @@ class _Editor extends StatelessWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onChanged: (text) => bloc.add(LineupNameChanged(text)),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
+        LineupBoard(
+          lineup: state.lineup,
+          selected: state.hex,
+          onTap: (position) => bloc.add(LineupHexChosen(position)),
+          onMove: (from, to) => bloc.add(LineupChampionMoved(from, to)),
+        ),
+        const SizedBox(height: 24),
+        switch (state.hex) {
+          null => Text(
+            'Izaberite polje na tabli.',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          final hex => _HexForm(state: state, catalog: catalog, hex: hex),
+        },
+        if (state.lineup.placements.isNotEmpty) const SizedBox(height: 24),
+        for (final placement in state.lineup.placements)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            selected: placement.position == state.hex,
+            leading: UnitHex(unit: placement.unit, size: 44),
+            title: Text(placement.unit.champion.name),
+            subtitle: Text('Red ${placement.position.row + 1} · Kolona ${placement.position.column + 1}'),
+            onTap: () => bloc.add(LineupHexChosen(placement.position)),
+            trailing: IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: 'Ukloni',
+              onPressed: () => _remove(context, placement),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _HexForm extends StatelessWidget {
+  const _HexForm({required this.state, required this.catalog, required this.hex});
+
+  final LineupEditorState state;
+  final Catalog catalog;
+  final HexPosition hex;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bloc = context.read<LineupEditorBloc>();
+    final placed = state.placed;
+    final current = state.lineup.placements.where((placement) => placement.position == hex).firstOrNull;
+    return Column(
+      key: ValueKey(hex),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         Semantics(
           header: true,
-          child: Text('Dodaj šampiona', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+          child: Text(
+            'Red ${hex.row + 1} · Kolona ${hex.column + 1}',
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
         ),
-        const SizedBox(height: 8),
-        _Picker<Champion>(
+        const SizedBox(height: 12),
+        CatalogPicker<Champion>(
           label: 'Šampion',
-          value: state.champion,
-          options: {for (final champion in catalog.champions) champion: champion.name},
-          onChanged: (champion) => bloc.add(LineupUnitChanged(champion: champion)),
+          options: catalog.champions,
+          name: (champion) => champion.name,
+          icon: (champion) => ChampionHex(champion: champion, size: 28),
+          initial: state.champion,
+          onSelected: (champion) => bloc.add(LineupUnitChanged(champion: champion)),
         ),
-        const SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _Picker<int>(
-                label: 'Red',
-                value: state.row,
-                options: {for (var row = 0; row < HexPosition.rows; row++) row: '${row + 1}'},
-                onChanged: (row) => bloc.add(LineupUnitChanged(row: row)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _Picker<int>(
-                label: 'Kolona',
-                value: state.column,
-                options: {for (var column = 0; column < HexPosition.columns; column++) column: '${column + 1}'},
-                onChanged: (column) => bloc.add(LineupUnitChanged(column: column)),
-              ),
-            ),
+        const SizedBox(height: 16),
+        SegmentedButton<int>(
+          segments: const [
+            ButtonSegment(value: 1, label: Text('1 ★')),
+            ButtonSegment(value: 2, label: Text('2 ★')),
+            ButtonSegment(value: 3, label: Text('3 ★')),
           ],
+          selected: {state.stars},
+          showSelectedIcon: false,
+          onSelectionChanged: (selection) => bloc.add(LineupUnitChanged(stars: selection.single)),
         ),
-        if (error != null && error is! TooManyItems) _ErrorText(error.message),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         if (state.items.isNotEmpty) ...[
           Wrap(
             spacing: 8,
@@ -122,90 +223,42 @@ class _Editor extends StatelessWidget {
                 InputChip(
                   avatar: ItemIcon(item: item, size: 24),
                   label: Text(item.name),
+                  deleteButtonTooltipMessage: 'Ukloni',
                   onDeleted: () => bloc.add(LineupItemRemoved(index)),
                 ),
             ],
           ),
           const SizedBox(height: 12),
         ],
-        _Picker<Item>(
+        CatalogPicker<Item>(
+          key: ValueKey(state.items.length),
           label: 'Dodaj predmet',
-          value: null,
-          options: {for (final item in catalog.items) item: item.name},
-          onChanged: (item) => bloc.add(LineupItemAdded(item)),
+          options: catalog.items,
+          name: (item) => item.name,
+          icon: (item) => ItemIcon(item: item, size: 24),
+          onSelected: (item) => bloc.add(LineupItemAdded(item)),
         ),
-        if (error is TooManyItems) _ErrorText(error.message),
-        const SizedBox(height: 16),
-        FilledButton.tonalIcon(
-          onPressed: placed is Success ? () => bloc.add(const LineupChampionPlaced()) : null,
-          icon: const Icon(Icons.add),
-          label: const Text('Postavi na tablu'),
-        ),
-        const SizedBox(height: 32),
-        LineupBoard(lineup: state.lineup),
-        const SizedBox(height: 16),
-        for (final placement in state.lineup.placements)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: UnitHex(unit: placement.unit, size: 44),
-            title: Text(placement.unit.champion.name),
-            subtitle: Text('Red ${placement.position.row + 1} · Kolona ${placement.position.column + 1}'),
-            trailing: IconButton(
-              icon: const Icon(Icons.close),
-              tooltip: 'Ukloni',
-              onPressed: () => bloc.add(LineupChampionRemoved(placement.position)),
+        if (placed case Failure(:final error))
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(error.message, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error)),
             ),
           ),
-      ],
-    );
-  }
-}
-
-class _Picker<T> extends StatelessWidget {
-  const _Picker({required this.label, required this.value, required this.options, required this.onChanged});
-
-  final String label;
-  final T? value;
-  final Map<T, String> options;
-  final ValueChanged<T> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(labelText: label),
-      isEmpty: value == null,
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          isDense: true,
-          isExpanded: true,
-          items: [
-            for (final MapEntry(key: option, value: text) in options.entries)
-              DropdownMenuItem(value: option, child: Text(text)),
-          ],
-          onChanged: (option) {
-            if (option != null) onChanged(option);
-          },
+        const SizedBox(height: 16),
+        FilledButton.tonalIcon(
+          onPressed: placed is Success<Lineup> ? () => bloc.add(const LineupChampionPlaced()) : null,
+          icon: const Icon(Icons.check),
+          label: const Text('Postavi na tablu'),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorText extends StatelessWidget {
-  const _ErrorText(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Semantics(
-        liveRegion: true,
-        child: Text(text, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error)),
-      ),
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: current == null ? null : () => _remove(context, current),
+          icon: const Icon(Icons.delete_outline),
+          label: const Text('Ukloni sa table'),
+        ),
+      ],
     );
   }
 }

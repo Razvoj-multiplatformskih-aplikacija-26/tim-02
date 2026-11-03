@@ -25,7 +25,6 @@ class CompsView extends StatelessWidget {
           leading: Icon(Icons.update, color: theme.colorScheme.primary),
           title: Text('Patch ${patch.value}', style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: const Text('Trenutni patch'),
-          trailing: const Icon(Icons.chevron_right),
           tileColor: theme.colorScheme.surfaceContainer,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),

@@ -24,6 +24,16 @@ final class LineupsBloc extends Bloc<LineupsEvent, LineupsState> {
         );
       }
     });
+    on<LineupDeleted>((event, emit) {
+      if (state case LineupsLoaded(:final lineups, :final catalog)) {
+        emit(
+          LineupsLoaded([
+            for (final lineup in lineups)
+              if (lineup.id != event.id) lineup,
+          ], catalog),
+        );
+      }
+    });
   }
 
   final GetLineups getLineups;

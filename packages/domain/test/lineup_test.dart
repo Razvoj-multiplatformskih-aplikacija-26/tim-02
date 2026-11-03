@@ -51,6 +51,26 @@ void main() {
       expect(lineup.place(Placement(unit: Unit.parse(zyra).valueOrNull!, position: corner)).isSuccess, isTrue);
     });
 
+    test('moves a champion to an empty hex and swaps two champions', () {
+      final front = HexPosition.parse(0, 3).valueOrNull!;
+      final side = HexPosition.parse(0, 6).valueOrNull!;
+      final lineup = const Lineup.empty()
+          .place(Placement(unit: Unit.parse(ahri).valueOrNull!, position: corner))
+          .valueOrNull!
+          .place(Placement(unit: Unit.parse(zyra).valueOrNull!, position: front))
+          .valueOrNull!;
+      String at(Lineup lineup, HexPosition position) =>
+          lineup.placements.singleWhere((p) => p.position == position).unit.champion.name;
+
+      final moved = lineup.move(corner, side);
+      expect(moved.placements.map((p) => p.position), unorderedEquals([side, front]));
+      expect(at(moved, side), 'Ahri');
+
+      final swapped = lineup.move(corner, front);
+      expect(at(swapped, front), 'Ahri');
+      expect(at(swapped, corner), 'Zyra');
+    });
+
     test('takes the champion with the most items, then the one furthest back, as its carry', () {
       final front = HexPosition.parse(0, 0).valueOrNull!;
       Lineup board({required int frontItems, required int backItems}) {

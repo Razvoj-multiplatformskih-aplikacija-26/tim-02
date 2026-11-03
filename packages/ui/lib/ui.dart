@@ -1,9 +1,11 @@
 export 'src/text/domain_errors.dart';
 export 'src/text/serbian.dart';
 export 'src/theme.dart';
+export 'src/widgets/catalog_picker.dart';
 export 'src/widgets/champion_hex.dart';
 export 'src/widgets/champion_tile.dart';
 export 'src/widgets/comps_view.dart';
+export 'src/widgets/discard_dialog.dart';
 export 'src/widgets/item_icon.dart';
 export 'src/widgets/lineup_board.dart';
 export 'src/widgets/state_views.dart';

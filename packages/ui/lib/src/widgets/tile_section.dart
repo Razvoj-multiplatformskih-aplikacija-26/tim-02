@@ -9,7 +9,7 @@ class TileSection extends StatelessWidget {
     this.highlighted = false,
   });
 
-  final String label;
+  final String? label;
   final int columns;
   final List<Widget> children;
   final bool highlighted;
@@ -23,22 +23,24 @@ class TileSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Semantics(
-                header: true,
-                child: Text(
-                  label.toUpperCase(),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: highlighted ? scheme.primary : scheme.onSurface,
+          if (label case final label?) ...[
+            Row(
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(
+                    label.toUpperCase(),
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: highlighted ? scheme.primary : scheme.onSurface,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: Divider(color: scheme.outlineVariant)),
-            ],
-          ),
-          const SizedBox(height: 12),
+                const SizedBox(width: 12),
+                Expanded(child: Divider(color: scheme.outlineVariant)),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
           LayoutBuilder(
             builder: (context, constraints) {
               final width = ((constraints.maxWidth - 12 * (columns - 1)) / columns).floorToDouble();

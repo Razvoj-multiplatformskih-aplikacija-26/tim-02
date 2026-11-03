@@ -31,24 +31,27 @@ class MineScreen extends StatelessWidget {
           ),
     ];
     final sections = archived
-        ? {
-            TacticStatusKind.archived: tactics({TacticStatusKind.archived}),
-          }
-        : {
-            TacticStatusKind.published: tactics({TacticStatusKind.published, TacticStatusKind.hidden}),
-            TacticStatusKind.draft: [
-              for (final lineup in lineups)
-                ChampionTile(
-                  champion: lineup.lineup.carry,
-                  title: lineup.name.text,
-                  onOpen: () => context.push('/lineups/${lineup.id.value}', extra: lineup),
-                ),
-              ...tactics({TacticStatusKind.draft}),
-            ],
-          };
+        ? [
+            (null, tactics({TacticStatusKind.archived})),
+          ]
+        : [
+            (TacticStatusKind.published.label, tactics({TacticStatusKind.published, TacticStatusKind.hidden})),
+            (TacticStatusKind.draft.label, tactics({TacticStatusKind.draft})),
+            (
+              'Postave',
+              [
+                for (final lineup in lineups)
+                  ChampionTile(
+                    champion: lineup.lineup.carry,
+                    title: lineup.name.text,
+                    onOpen: () => context.push('/lineups/${lineup.id.value}', extra: lineup),
+                  ),
+              ],
+            ),
+          ];
     return [
-      for (final MapEntry(key: kind, value: tiles) in sections.entries)
-        if (tiles.isNotEmpty) TileSection(label: kind.label, columns: 3, children: tiles),
+      for (final (label, tiles) in sections)
+        if (tiles.isNotEmpty) TileSection(label: label, columns: 3, children: tiles),
     ];
   }
 
@@ -56,7 +59,7 @@ class MineScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MOJE KOMPOZICIJE'),
+        title: Text(archived ? 'ARHIVIRANE' : 'MOJE KOMPOZICIJE'),
         actions: [
           IconButton(
             isSelected: archived,

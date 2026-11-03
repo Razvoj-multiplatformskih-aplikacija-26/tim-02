@@ -1,5 +1,6 @@
 export 'src/change_tactic_status.dart';
 export 'src/clock.dart';
+export 'src/delete_lineup.dart';
 export 'src/get_catalog.dart';
 export 'src/get_lineups.dart';
 export 'src/get_tactics.dart';

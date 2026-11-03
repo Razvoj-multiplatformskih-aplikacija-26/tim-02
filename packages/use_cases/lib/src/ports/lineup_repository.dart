@@ -5,5 +5,7 @@ abstract interface class LineupRepository {
 
   Future<PersonalLineup> save(PersonalLineup lineup);
 
+  Future<void> delete(LineupId id);
+
   Future<Catalog> catalog();
 }

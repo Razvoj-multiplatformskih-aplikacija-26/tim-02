@@ -16,7 +16,8 @@ final class AppDependencies {
        changeTacticStatus = ChangeTacticStatus(tactics: tactics, clock: clock),
        getLineups = GetLineups(lineups: lineups),
        getCatalog = GetCatalog(lineups: lineups),
-       saveLineup = SaveLineup(lineups: lineups, clock: clock);
+       saveLineup = SaveLineup(lineups: lineups, clock: clock),
+       deleteLineup = DeleteLineup(lineups: lineups);
 
   factory AppDependencies.fake({Clock clock = const SystemClock(), Duration? latency}) {
     final tactics = latency == null ? FakeTactics(clock: clock) : FakeTactics(clock: clock, latency: latency);
@@ -37,5 +38,6 @@ final class AppDependencies {
   final GetLineups getLineups;
   final GetCatalog getCatalog;
   final SaveLineup saveLineup;
+  final DeleteLineup deleteLineup;
   final FakeTactics? fakeTactics;
 }

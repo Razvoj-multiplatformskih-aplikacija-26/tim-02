@@ -13,3 +13,9 @@ final class LineupSaved extends LineupsEvent {
 
   final PersonalLineup lineup;
 }
+
+final class LineupDeleted extends LineupsEvent {
+  const LineupDeleted(this.id);
+
+  final LineupId id;
+}

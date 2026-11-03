@@ -64,6 +64,14 @@ void main() {
     expect(find.text('Fae Ezreal · Brzi nivo 8 · Srednje'), findsOneWidget);
     expect(units, findsNWidgets(4));
 
+    await tester.ensureVisible(units.first);
+    await tester.pumpAndSettle();
+    await tester.tap(units.first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('jedinica od'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(find.text('KOMPOZICIJE'), findsOneWidget);
@@ -75,6 +83,7 @@ void main() {
     await tester.scrollUntilVisible(find.text('Caitlyn Hunters').hitTestable(), 300);
     await tester.tap(find.text('Caitlyn Hunters'));
     await tester.pumpAndSettle();
+    expect(find.text('Sačuvaj kao postavu'), findsNothing);
 
     Future<void> archive() async {
       await tester.tap(find.text('Arhiviraj'));
@@ -90,22 +99,24 @@ void main() {
     await tester.pumpAndSettle();
     await archive();
     expect(find.text('Izmena nije sačuvana.'), findsOneWidget);
-    expect(find.text('Objavljena'), findsOneWidget);
+    expect(find.text('Objavljena'), findsNothing);
+    expect(find.text('Tier B'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 5));
     await archive();
     expect(find.text('Taktika je arhivirana.'), findsOneWidget);
     expect(find.text('Arhivirana'), findsOneWidget);
-    expect(find.text('Patch 18.5c: B'), findsNothing);
+    expect(find.text('Tier B'), findsNothing);
     expect(find.text('Arhiviraj'), findsNothing);
   });
 
-  testWidgets('lists my saved lineups among the drafts', (tester) async {
+  testWidgets('lists my saved lineups in their own section below the drafts', (tester) async {
     await pumpApp(tester);
     await openTab(tester, 'Moje kompozicije');
     expect(find.text('MOJE KOMPOZICIJE'), findsOneWidget);
-    expect(find.text('Fae Ezreal za rangirano'), findsOneWidget);
     expect(find.text('AP brzi nivo 9 sa Alune'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Fae Ezreal za rangirano'), 300);
+    expect(find.text('POSTAVE'), findsOneWidget);
   });
 
   testWidgets('shows my archived tactics only behind the archive toggle', (tester) async {

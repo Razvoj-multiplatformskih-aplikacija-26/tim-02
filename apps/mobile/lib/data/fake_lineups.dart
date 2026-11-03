@@ -29,6 +29,12 @@ final class FakeLineups implements LineupRepository {
   }
 
   @override
+  Future<void> delete(LineupId id) async {
+    await Future<void>.delayed(latency);
+    _lineups.removeWhere((lineup) => lineup.id == id);
+  }
+
+  @override
   Future<Catalog> catalog() async {
     await Future<void>.delayed(latency);
     return seedCatalog;

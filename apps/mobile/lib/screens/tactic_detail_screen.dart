@@ -45,7 +45,6 @@ class TacticDetailScreen extends StatelessWidget {
             null => const EmptyView(title: 'Taktika nije pronađena.'),
             final tactic => TacticDetails(
               tactic: tactic,
-              patch: state.tierList.patch,
               tier: state.tierList.tierOf(tactic),
               variant: variant,
               early: early,
@@ -63,47 +62,56 @@ class TacticDetailScreen extends StatelessWidget {
   }
 
   Widget? _actions(BuildContext context, TacticsLoaded state) {
-    final chosen = state.tactic(id)?.variants.elementAtOrNull(variant);
-    final archivable = state.actionsFor(id).contains(TacticAction.archive);
-    if (chosen == null && !archivable) return null;
-    final archive = state.inFlightId == id
-        ? OutlinedButton.icon(
-            onPressed: null,
-            icon: const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.5)),
-            label: const Text('Arhiviranje…'),
-          )
-        : OutlinedButton.icon(
-            onPressed: state.isBusy ? null : () => _confirmArchive(context, id),
-            icon: const Icon(Icons.archive_outlined),
-            label: Text(TacticAction.archive.label),
-          );
-    return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Row(
-        spacing: 12,
-        children: [
-          if (archivable) chosen == null ? Expanded(child: archive) : archive,
-          if (chosen != null)
-            Expanded(
-              child: FilledButton.tonalIcon(
-                onPressed: () => context.push('/lineups/new?from=${id.value}', extra: chosen),
-                icon: const Icon(Icons.bookmark_add_outlined),
-                label: const Text('Sačuvaj kao postavu'),
-              ),
-            ),
-        ],
-      ),
-    );
+    final tactic = state.tactic(id);
+    if (tactic == null) return null;
+    final copy = switch (context.watch<LineupsBloc>().state) {
+      LineupsLoaded(:final lineups) => lineups.where((lineup) => lineup.basedOn == id).firstOrNull,
+      _ => null,
+    };
+    final Widget button;
+    if (state.actionsFor(id).contains(TacticAction.archive)) {
+      button = state.inFlightId == id
+          ? OutlinedButton.icon(
+              onPressed: null,
+              icon: const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.5)),
+              label: const Text('Arhiviranje…'),
+            )
+          : OutlinedButton.icon(
+              onPressed: state.isBusy ? null : () => _confirmArchive(context, tactic),
+              icon: const Icon(Icons.archive_outlined),
+              label: Text(TacticAction.archive.label),
+            );
+    } else if (copy != null) {
+      button = FilledButton.tonalIcon(
+        onPressed: () => context.push('/lineups/${copy.id.value}', extra: copy),
+        icon: const Icon(Icons.bookmark_outlined),
+        label: const Text('Otvori postavu'),
+      );
+    } else if (tactic.authorId != state.user.id && tactic.status is Published && tactic.variants.isNotEmpty) {
+      final query = {'from': id.value, if (variant > 0) 'variant': '$variant', if (early) 'early': '1'};
+      button = FilledButton.tonalIcon(
+        onPressed: () => context.push(Uri(path: '/lineups/new', queryParameters: query).toString()),
+        icon: const Icon(Icons.bookmark_add_outlined),
+        label: const Text('Sačuvaj kao postavu'),
+      );
+    } else {
+      return null;
+    }
+    return SafeArea(minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16), child: button);
   }
 }
 
-Future<void> _confirmArchive(BuildContext context, TacticId id) async {
+Future<void> _confirmArchive(BuildContext context, Tactic tactic) async {
   final bloc = context.read<TacticsBloc>();
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog.adaptive(
       title: const Text('Arhivirati taktiku?'),
-      content: const Text('Arhivirana taktika više nije javno dostupna i ne može da se vrati.'),
+      content: Text(
+        tactic.status is Draft
+            ? 'Arhivirani nacrt ne može da se vrati.'
+            : 'Arhivirana taktika više nije javno dostupna i ne može da se vrati.',
+      ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Odustani')),
         FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(TacticAction.archive.label)),
@@ -111,5 +119,5 @@ Future<void> _confirmArchive(BuildContext context, TacticId id) async {
     ),
   );
   if (confirmed != true) return;
-  bloc.add(TacticActionRequested(id, TacticAction.archive));
+  bloc.add(TacticActionRequested(tactic.id, TacticAction.archive));
 }

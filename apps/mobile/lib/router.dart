@@ -41,10 +41,22 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/lineups/new',
-        builder: (context, state) => _lineupEditor(context, switch ((state.uri.queryParameters['from'], state.extra)) {
-          (final from?, final TacticVariant variant) => LineupEditorState.fromVariant(TacticId(from), variant),
-          _ => const LineupEditorState(),
-        }),
+        builder: (context, state) {
+          final query = state.uri.queryParameters;
+          final tactic = switch ((query['from'], context.read<TacticsBloc>().state)) {
+            (final from?, final TacticsLoaded loaded) => loaded.tactic(TacticId(from)),
+            _ => null,
+          };
+          final variant = tactic?.variants.elementAtOrNull(int.tryParse(query['variant'] ?? '') ?? 0);
+          return _lineupEditor(context, switch ((tactic, variant)) {
+            (final tactic?, final variant?) => LineupEditorState.fromTactic(
+              tactic,
+              variant,
+              early: query['early'] == '1',
+            ),
+            _ => const LineupEditorState(),
+          });
+        },
       ),
       GoRoute(
         path: '/lineups/:id',
@@ -55,7 +67,14 @@ GoRouter createRouter() {
   );
 }
 
-Widget _lineupEditor(BuildContext context, LineupEditorState initial) => BlocProvider(
-  create: (_) => LineupEditorBloc(saveLineup: context.read<AppDependencies>().saveLineup, initial: initial),
-  child: const LineupEditorScreen(),
-);
+Widget _lineupEditor(BuildContext context, LineupEditorState initial) {
+  final dependencies = context.read<AppDependencies>();
+  return BlocProvider(
+    create: (_) => LineupEditorBloc(
+      saveLineup: dependencies.saveLineup,
+      deleteLineup: dependencies.deleteLineup,
+      initial: initial,
+    ),
+    child: const LineupEditorScreen(),
+  );
+}
