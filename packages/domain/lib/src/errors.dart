@@ -45,6 +45,10 @@ final class NotAllowed extends DomainError {
   const NotAllowed();
 }
 
+final class HiddenByAdmin extends DomainError {
+  const HiddenByAdmin();
+}
+
 final class InvalidTransition extends DomainError {
   const InvalidTransition({required this.from, required this.to});
 

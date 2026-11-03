@@ -12,6 +12,9 @@ class TacticPanel extends StatelessWidget {
     required this.onVariantSelected,
     required this.onEarlySelected,
     required this.onClose,
+    this.onHide,
+    this.onRestore,
+    this.busy = false,
   });
 
   final Tactic tactic;
@@ -21,6 +24,9 @@ class TacticPanel extends StatelessWidget {
   final ValueChanged<int> onVariantSelected;
   final ValueChanged<bool> onEarlySelected;
   final VoidCallback onClose;
+  final VoidCallback? onHide;
+  final VoidCallback? onRestore;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +36,29 @@ class TacticPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-            child: Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: IconButton(tooltip: 'Zatvori', onPressed: onClose, icon: const Icon(Icons.close)),
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: switch ((onHide, onRestore)) {
+                      (final hide?, _) => OutlinedButton.icon(
+                        onPressed: busy ? null : hide,
+                        icon: const Icon(Icons.visibility_off_outlined),
+                        label: Text(TacticAction.hide.label),
+                      ),
+                      (_, final restore?) => FilledButton.icon(
+                        onPressed: busy ? null : restore,
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: Text(TacticAction.restore.label),
+                      ),
+                      _ => null,
+                    },
+                  ),
+                ),
+                IconButton(tooltip: 'Zatvori', onPressed: onClose, icon: const Icon(Icons.close)),
+              ],
             ),
           ),
           Expanded(

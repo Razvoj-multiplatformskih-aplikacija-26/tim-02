@@ -35,10 +35,11 @@ final class TacticSelected extends TacticsEvent {
 }
 
 final class TacticActionRequested extends TacticsEvent {
-  const TacticActionRequested(this.id, this.action);
+  const TacticActionRequested(this.id, this.action, {this.reason});
 
   final TacticId id;
   final TacticAction action;
+  final HideReason? reason;
 }
 
 final class TacticsNoticeAcknowledged extends TacticsEvent {

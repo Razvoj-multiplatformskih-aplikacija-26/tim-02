@@ -48,9 +48,15 @@ extension DifficultyLabel on Difficulty {
 extension TacticActionText on TacticAction {
   String get label => switch (this) {
     TacticAction.archive => 'Arhiviraj',
+    TacticAction.publish => 'Objavi',
+    TacticAction.hide => 'Sakrij',
+    TacticAction.restore => 'Vrati u javni prikaz',
   };
 
   String get doneMessage => switch (this) {
     TacticAction.archive => 'Taktika je arhivirana.',
+    TacticAction.publish => 'Taktika je objavljena.',
+    TacticAction.hide => 'Taktika je sakrivena.',
+    TacticAction.restore => 'Taktika je vraćena u javni prikaz.',
   };
 }

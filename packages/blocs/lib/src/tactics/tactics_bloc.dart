@@ -58,7 +58,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
     emit(current.withInFlight(event.id));
     final Result<Tactic> result;
     try {
-      result = await changeStatus(id: event.id, action: event.action, by: user);
+      result = await changeStatus(id: event.id, action: event.action, by: user, reason: event.reason);
     } on Exception catch (cause) {
       emit(current.withNotice(TacticRequestFailed(cause)));
       return;

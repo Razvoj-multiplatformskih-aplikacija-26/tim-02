@@ -21,12 +21,12 @@ void main() {
     updatedAt: now,
   );
 
-  TacticsBloc blocWith(FakeTactics tactics) => TacticsBloc(
+  TacticsBloc blocWith(FakeTactics tactics, {User user = marko}) => TacticsBloc(
     getTactics: GetTactics(tactics: tactics),
     getTierList: GetTierList(tactics: tactics),
     changeStatus: ChangeTacticStatus(tactics: tactics, clock: FixedClock(now)),
     clock: FixedClock(now),
-    user: marko,
+    user: user,
   );
 
   blocTest<TacticsBloc, TacticsState>(
@@ -124,6 +124,32 @@ void main() {
     skip: 2,
     expect: () => [
       isA<TacticsLoaded>().having((s) => s.visible.map((t) => t.id), 'visible', [const TacticId('t-3')]),
+    ],
+  );
+
+  blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc lets an admin hide a published tactic with a reason',
+    build: () => blocWith(
+      FakeTactics(tactics: [tactic('t-1', luka, Published(at: now))]),
+      user: ana,
+    ),
+    act: (bloc) async {
+      bloc.add(const TacticsRequested());
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded);
+      bloc.add(
+        TacticActionRequested(
+          const TacticId('t-1'),
+          TacticAction.hide,
+          reason: HideReason.parse('Kopija tuđe taktike').valueOrNull,
+        ),
+      );
+    },
+    skip: 3,
+    expect: () => [
+      isA<TacticsLoaded>()
+          .having((s) => s.tactics.single.status, 'status', isA<Hidden>())
+          .having((s) => s.notice, 'notice', isA<TacticChanged>())
+          .having((s) => s.actionsFor(const TacticId('t-1')), 'actions', {TacticAction.restore}),
     ],
   );
 

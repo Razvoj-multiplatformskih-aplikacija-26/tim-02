@@ -3,6 +3,7 @@ import 'package:use_cases/use_cases.dart';
 
 const marko = User(id: UserId('u-marko'), name: 'Marko', role: Role.creator);
 const luka = User(id: UserId('u-luka'), name: 'Luka', role: Role.creator);
+const ana = User(id: UserId('u-ana'), name: 'Ana', role: Role.admin);
 
 final class FakeTactics implements TacticRepository {
   FakeTactics({

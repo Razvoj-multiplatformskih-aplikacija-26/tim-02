@@ -8,6 +8,7 @@ extension DomainErrorMessage on DomainError {
     HexOccupied() => 'Na ovom polju već stoji šampion.',
     InvalidLineupName() => 'Naziv postave mora imati od 1 do ${LineupName.maxLength} znakova.',
     NotAllowed() => 'Nemate pravo na ovu radnju.',
+    HiddenByAdmin() => 'Taktiku je sakrio administrator; samo on može da je vrati.',
     InvalidTransition() => 'Ova promena stanja nije moguća.',
     NotFound() => 'Taktika nije pronađena.',
   };

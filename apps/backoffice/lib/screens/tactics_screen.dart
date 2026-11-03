@@ -8,6 +8,7 @@ import 'package:ui/ui.dart';
 
 import '../data/fake_tactics.dart';
 import '../dependencies.dart';
+import '../widgets/hide_dialog.dart';
 import '../widgets/tactic_panel.dart';
 import '../widgets/tactic_table.dart';
 
@@ -87,6 +88,16 @@ class _TacticsScreenState extends State<TacticsScreen> {
     TacticsScreen.pathFor(widget.filter, search: widget.search, selected: selected, variant: variant, early: early),
   );
 
+  void _showNotice(TacticsNotice notice) {
+    final message = switch (notice) {
+      TacticChanged(:final action) => action.doneMessage,
+      TacticRejected(:final error) => error.message,
+      TacticRequestFailed() => 'Izmena nije sačuvana.',
+    };
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    _bloc.add(const TacticsNoticeAcknowledged());
+  }
+
   void _simulateOutage(FakeTactics fake) {
     fake.failingRequests = 1;
     _bloc.add(const TacticsRequested());
@@ -143,41 +154,52 @@ class _TacticsScreenState extends State<TacticsScreen> {
           ),
         ),
       ),
-      body: BlocConsumer<TacticsBloc, TacticsState>(
+      body: BlocListener<TacticsBloc, TacticsState>(
         listenWhen: (previous, current) => previous is! TacticsLoaded && current is TacticsLoaded,
         listener: (context, state) => _syncWithRoute(),
-        builder: (context, state) => switch (state) {
-          TacticsLoading() => const LoadingView(),
-          TacticsFailure() => FailureView(onRetry: () => _bloc.add(const TacticsRequested())),
-          TacticsEmpty() => const EmptyView(title: 'Još nema taktika.'),
-          TacticsLoaded() => Row(
-            children: [
-              Expanded(
-                child: TacticTable(
-                  tactics: state.visible,
-                  selectedId: state.selectedId,
-                  onSelect: (tactic) => _goTo(selected: tactic.id),
-                ),
-              ),
-              if (state.selected case final selected?) ...[
-                const VerticalDivider(width: 1),
-                SizedBox(
-                  width: 360,
-                  child: TacticPanel(
-                    key: ValueKey(selected.id),
-                    tactic: selected,
-                    tier: state.tierList.tierOf(selected),
-                    variant: widget.variant,
-                    early: widget.early,
-                    onVariantSelected: (index) => _goTo(selected: selected.id, variant: index, early: widget.early),
-                    onEarlySelected: (value) => _goTo(selected: selected.id, variant: widget.variant, early: value),
-                    onClose: _goTo,
+        child: BlocConsumer<TacticsBloc, TacticsState>(
+          listenWhen: (previous, current) => current is TacticsLoaded && current.notice != null,
+          listener: (context, state) => _showNotice((state as TacticsLoaded).notice!),
+          builder: (context, state) => switch (state) {
+            TacticsLoading() => const LoadingView(),
+            TacticsFailure() => FailureView(onRetry: () => _bloc.add(const TacticsRequested())),
+            TacticsEmpty() => const EmptyView(title: 'Još nema taktika.'),
+            TacticsLoaded() => Row(
+              children: [
+                Expanded(
+                  child: TacticTable(
+                    tactics: state.visible,
+                    selectedId: state.selectedId,
+                    onSelect: (tactic) => _goTo(selected: tactic.id),
                   ),
                 ),
+                if (state.selected case final selected?) ...[
+                  const VerticalDivider(width: 1),
+                  SizedBox(
+                    width: 360,
+                    child: TacticPanel(
+                      key: ValueKey(selected.id),
+                      tactic: selected,
+                      tier: state.tierList.tierOf(selected),
+                      variant: widget.variant,
+                      early: widget.early,
+                      onVariantSelected: (index) => _goTo(selected: selected.id, variant: index, early: widget.early),
+                      onEarlySelected: (value) => _goTo(selected: selected.id, variant: widget.variant, early: value),
+                      onClose: _goTo,
+                      busy: state.isBusy,
+                      onHide: state.actionsFor(selected.id).contains(TacticAction.hide)
+                          ? () => confirmHide(context, selected)
+                          : null,
+                      onRestore: state.actionsFor(selected.id).contains(TacticAction.restore)
+                          ? () => _bloc.add(TacticActionRequested(selected.id, TacticAction.restore))
+                          : null,
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
-        },
+            ),
+          },
+        ),
       ),
     );
   }

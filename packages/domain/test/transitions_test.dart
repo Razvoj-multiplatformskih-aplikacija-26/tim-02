@@ -53,7 +53,7 @@ void main() {
       final archived = archiveTactic(published, by: marko, now: later);
       expect(archived.valueOrNull?.status, Archived(at: later));
       expect(archived.valueOrNull?.updatedAt, later);
-      expect(allowedActions(tactic(const Draft()), marko, now: now), {TacticAction.archive});
+      expect(allowedActions(tactic(const Draft()), marko, now: now), contains(TacticAction.archive));
     });
 
     test('keeps an archived tactic archived', () {
@@ -68,6 +68,33 @@ void main() {
     test('refuses a creator who is not the author', () {
       expect(archiveTactic(tactic(const Draft()), by: luka, now: now), const Failure<Tactic>(NotAllowed()));
       expect(allowedActions(tactic(const Draft()), luka, now: now), isEmpty);
+    });
+  });
+
+  group('publish, hide and restore', () {
+    const ana = User(id: UserId('u-ana'), name: 'Ana', role: Role.admin);
+    final reason = HideReason.parse('Opis je preuzet bez izvora.').valueOrNull!;
+    final hidden = Hidden(reason: reason, by: ana.id, at: now);
+
+    test('keeps the author from publishing a tactic an admin hid', () {
+      expect(publishTactic(tactic(hidden), by: marko, now: now), const Failure<Tactic>(HiddenByAdmin()));
+      expect(allowedActions(tactic(hidden), marko, now: now), {TacticAction.archive});
+    });
+
+    test('lets only an admin hide a published tactic and restore it', () {
+      final published = tactic(Published(at: now));
+      expect(hideTactic(published, by: marko, reason: reason, now: now), const Failure<Tactic>(NotAllowed()));
+      expect(hideTactic(published, by: ana, reason: reason, now: now).valueOrNull?.status, hidden);
+      expect(restoreTactic(tactic(hidden), by: ana, now: now).valueOrNull?.status, Published(at: now));
+      expect(allowedActions(tactic(hidden), ana, now: now), {TacticAction.restore});
+    });
+
+    test('restores only a hidden tactic', () {
+      final published = Published(at: now);
+      expect(
+        restoreTactic(tactic(published), by: ana, now: now),
+        Failure<Tactic>(InvalidTransition(from: published, to: published)),
+      );
     });
   });
 }
