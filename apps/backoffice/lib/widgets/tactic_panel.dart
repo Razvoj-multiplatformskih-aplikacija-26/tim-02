@@ -50,22 +50,31 @@ class TacticPanel extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       if (onHide case final hide?)
-                        OutlinedButton.icon(
-                          onPressed: busy ? null : hide,
-                          icon: const Icon(Icons.visibility_off_outlined),
-                          label: Text(TacticAction.hide.label),
+                        Tooltip(
+                          message: 'Sakrij izabranu taktiku sa Kompozicija',
+                          child: OutlinedButton.icon(
+                            onPressed: busy ? null : hide,
+                            icon: const Icon(Icons.visibility_off_outlined),
+                            label: Text('${TacticAction.hide.label} (H)'),
+                          ),
                         ),
                       if (onRestore case final restore?)
-                        FilledButton.icon(
-                          onPressed: busy ? null : restore,
-                          icon: const Icon(Icons.visibility_outlined),
-                          label: Text(TacticAction.restore.label),
+                        Tooltip(
+                          message: 'Vrati izabranu taktiku na Kompozicije',
+                          child: FilledButton.icon(
+                            onPressed: busy ? null : restore,
+                            icon: const Icon(Icons.visibility_outlined),
+                            label: Text('${TacticAction.restore.label} (R)'),
+                          ),
                         ),
                       if (onEdit case final edit?)
-                        OutlinedButton.icon(
-                          onPressed: busy ? null : edit,
-                          icon: const Icon(Icons.edit_outlined),
-                          label: const Text('Uredi'),
+                        Tooltip(
+                          message: 'Uredi izabranu taktiku',
+                          child: OutlinedButton.icon(
+                            onPressed: busy ? null : edit,
+                            icon: const Icon(Icons.edit_outlined),
+                            label: const Text('Uredi (E)'),
+                          ),
                         ),
                       if (onPlace case final place?)
                         MenuAnchor(
@@ -85,7 +94,7 @@ class TacticPanel extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(tooltip: 'Zatvori', onPressed: onClose, icon: const Icon(Icons.close)),
+                IconButton(tooltip: 'Zatvori (Esc)', onPressed: onClose, icon: const Icon(Icons.close)),
               ],
             ),
           ),

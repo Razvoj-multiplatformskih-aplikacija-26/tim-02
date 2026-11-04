@@ -37,11 +37,12 @@ class TacticTable extends StatelessWidget {
             itemBuilder: (context, index) {
               final tactic = tactics[index];
               final selected = tactic.id == selectedId;
-              return Semantics(
+              final row = Semantics(
                 selected: selected,
                 child: Material(
                   color: selected ? scheme.surfaceContainerHigh : Colors.transparent,
                   child: InkWell(
+                    canRequestFocus: false,
                     onTap: () => onSelect(tactic),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -75,6 +76,7 @@ class TacticTable extends StatelessWidget {
                   ),
                 ),
               );
+              return selected ? _Revealed(key: ValueKey(tactic.id), child: row) : row;
             },
           ),
         ),
@@ -106,4 +108,28 @@ class _TableRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Revealed extends StatefulWidget {
+  const _Revealed({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<_Revealed> createState() => _RevealedState();
+}
+
+class _RevealedState extends State<_Revealed> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Scrollable.ensureVisible(context, alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd);
+      Scrollable.ensureVisible(context, alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

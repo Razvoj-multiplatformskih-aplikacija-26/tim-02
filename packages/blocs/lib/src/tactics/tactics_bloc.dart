@@ -64,6 +64,15 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
       final current = state;
       if (current is TacticsLoaded) emit(current.withSelection(event.id));
     });
+    on<TacticSelectionMoved>((event, emit) {
+      final current = state;
+      if (current is! TacticsLoaded) return;
+      final visible = current.visible;
+      if (visible.isEmpty) return;
+      final index = visible.indexWhere((t) => t.id == current.selectedId);
+      final next = index < 0 ? (event.delta > 0 ? 0 : visible.length - 1) : index + event.delta;
+      emit(current.withSelection(visible[next.clamp(0, visible.length - 1)].id));
+    });
     on<TacticActionRequested>(
       (event, emit) => _act(
         emit,

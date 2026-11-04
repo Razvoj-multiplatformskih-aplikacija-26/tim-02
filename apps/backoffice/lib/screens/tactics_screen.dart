@@ -2,12 +2,14 @@ import 'package:blocs/blocs.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui/ui.dart';
 
 import '../data/fake_tactics.dart';
 import '../dependencies.dart';
+import '../shortcuts.dart';
 import '../widgets/hide_dialog.dart';
 import '../widgets/tactic_panel.dart';
 import '../widgets/tactic_table.dart';
@@ -55,7 +57,11 @@ class TacticsScreen extends StatefulWidget {
 }
 
 class _TacticsScreenState extends State<TacticsScreen> {
+  final _tableFocus = FocusNode(debugLabel: 'tactics table');
+  final _usingKeyboard = ValueNotifier(false);
   late final _search = TextEditingController(text: widget.search);
+  final _searchFocus = FocusNode(debugLabel: 'search');
+
   TacticsBloc get _bloc => context.read<TacticsBloc>();
 
   @override
@@ -66,7 +72,10 @@ class _TacticsScreenState extends State<TacticsScreen> {
 
   @override
   void dispose() {
+    _tableFocus.dispose();
+    _usingKeyboard.dispose();
     _search.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -102,6 +111,83 @@ class _TacticsScreenState extends State<TacticsScreen> {
     ),
   );
 
+  Tactic? get _selected => switch (_bloc.state) {
+    TacticsLoaded(:final selected) => selected,
+    _ => null,
+  };
+
+  bool _allows(TacticAction action) {
+    final state = _bloc.state;
+    final selected = _selected;
+    return !_searchFocus.hasFocus &&
+        state is TacticsLoaded &&
+        !state.isBusy &&
+        selected != null &&
+        state.actionsFor(selected.id).contains(action);
+  }
+
+  void _hide() {
+    if (_selected case final tactic?) confirmHide(context, tactic);
+  }
+
+  void _restore() {
+    if (_selected case final tactic?) _bloc.add(TacticActionRequested(tactic.id, TacticAction.restore));
+  }
+
+  bool _editable() {
+    final state = _bloc.state;
+    final selected = _selected;
+    return !_searchFocus.hasFocus &&
+        state is TacticsLoaded &&
+        !state.isBusy &&
+        selected != null &&
+        state.canEdit(selected.id);
+  }
+
+  void _edit() {
+    if (_selected case final tactic?) context.push(TacticEditorScreen.pathFor(tactic.id));
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is KeyUpEvent) return KeyEventResult.ignored;
+    final delta = switch (event.logicalKey) {
+      LogicalKeyboardKey.arrowUp => -1,
+      LogicalKeyboardKey.arrowDown => 1,
+      _ => 0,
+    };
+    if (delta == 0) return KeyEventResult.ignored;
+    _usingKeyboard.value = true;
+    _bloc.add(TacticSelectionMoved(delta));
+    return KeyEventResult.handled;
+  }
+
+  Widget _focusable(Widget child) => Focus(
+    focusNode: _tableFocus,
+    autofocus: true,
+    onKeyEvent: _onKey,
+    child: Listener(
+      onPointerDown: (_) => _usingKeyboard.value = false,
+      child: ListenableBuilder(
+        listenable: Listenable.merge([_tableFocus, _usingKeyboard]),
+        builder: (context, child) => DecoratedBox(
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            border: _tableFocus.hasFocus && _usingKeyboard.value
+                ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
+                : null,
+          ),
+          child: child,
+        ),
+        child: child,
+      ),
+    ),
+  );
+
+  void _open(Tactic tactic) {
+    _tableFocus.requestFocus();
+    _goTo(selected: tactic.id);
+  }
+
   void _showNotice(TacticsNotice notice) {
     final message = switch (notice) {
       TacticChanged(:final action) => action.doneMessage,
@@ -121,129 +207,163 @@ class _TacticsScreenState extends State<TacticsScreen> {
   @override
   Widget build(BuildContext context) {
     final fake = context.read<BackofficeDependencies>().fakeTactics;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('TAKTIKE'),
-        actions: [
-          if (kDebugMode && fake != null)
-            IconButton(
-              tooltip: 'Simuliraj grešku',
-              onPressed: () => _simulateOutage(fake),
-              icon: const Icon(Icons.cloud_off_outlined),
-            ),
-          const SizedBox(width: 8),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Row(
-                spacing: 8,
-                children: [
-                  for (final kind in [null, ...TacticStatusKind.values])
-                    ChoiceChip(
-                      label: Text(kind?.label ?? 'Sve'),
-                      selected: kind == widget.filter,
-                      onSelected: (_) =>
-                          context.go(TacticsScreen.pathFor(kind, search: widget.search, tier: widget.tier)),
-                    ),
-                  MenuAnchor(
-                    menuChildren: [
-                      for (final tier in [null, ...Tier.values])
-                        MenuItemButton(
-                          onPressed: () =>
-                              context.go(TacticsScreen.pathFor(widget.filter, search: widget.search, tier: tier)),
-                          child: Text(tier?.label ?? 'Svi tierovi'),
+    return Shortcuts(
+      shortcuts: tacticShortcuts(),
+      child: Actions(
+        actions: {
+          HideIntent: GuardedCallbackAction<HideIntent>(
+            enabled: () => _allows(TacticAction.hide),
+            onInvoke: (_) => _hide(),
+          ),
+          RestoreIntent: GuardedCallbackAction<RestoreIntent>(
+            enabled: () => _allows(TacticAction.restore),
+            onInvoke: (_) => _restore(),
+          ),
+          EditIntent: GuardedCallbackAction<EditIntent>(enabled: _editable, onInvoke: (_) => _edit()),
+          ClearSelectionIntent: CallbackAction<ClearSelectionIntent>(
+            onInvoke: (_) {
+              _bloc.add(const TacticSelected(null));
+              _tableFocus.requestFocus();
+              return null;
+            },
+          ),
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('TAKTIKE'),
+            actions: [
+              if (kDebugMode && fake != null)
+                IconButton(
+                  tooltip: 'Simuliraj grešku',
+                  onPressed: () => _simulateOutage(fake),
+                  icon: const Icon(Icons.cloud_off_outlined),
+                ),
+              const SizedBox(width: 8),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(52),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      for (final kind in [null, ...TacticStatusKind.values])
+                        ChoiceChip(
+                          label: Text(kind?.label ?? 'Sve'),
+                          selected: kind == widget.filter,
+                          onSelected: (_) =>
+                              context.go(TacticsScreen.pathFor(kind, search: widget.search, tier: widget.tier)),
                         ),
+                      MenuAnchor(
+                        menuChildren: [
+                          for (final tier in [null, ...Tier.values])
+                            MenuItemButton(
+                              onPressed: () =>
+                                  context.go(TacticsScreen.pathFor(widget.filter, search: widget.search, tier: tier)),
+                              child: Text(tier?.label ?? 'Svi tierovi'),
+                            ),
+                        ],
+                        builder: (context, controller, child) => ChoiceChip(
+                          avatar: const Icon(Icons.leaderboard_outlined),
+                          label: Text(switch (widget.tier) {
+                            final tier? => 'Tier: ${tier.label}',
+                            null => 'Svi tierovi',
+                          }),
+                          selected: widget.tier != null,
+                          showCheckmark: false,
+                          onSelected: (_) => controller.isOpen ? controller.close() : controller.open(),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 260,
+                        child: TextField(
+                          controller: _search,
+                          focusNode: _searchFocus,
+                          decoration: const InputDecoration(
+                            hintText: 'Naslov ili autor',
+                            prefixIcon: Icon(Icons.search),
+                            prefixIconConstraints: BoxConstraints(minWidth: 40),
+                            isDense: true,
+                          ),
+                          onChanged: (text) => Router.neglect(
+                            context,
+                            () => context.go(TacticsScreen.pathFor(widget.filter, search: text, tier: widget.tier)),
+                          ),
+                        ),
+                      ),
                     ],
-                    builder: (context, controller, child) => ChoiceChip(
-                      avatar: const Icon(Icons.leaderboard_outlined),
-                      label: Text(switch (widget.tier) {
-                        final tier? => 'Tier: ${tier.label}',
-                        null => 'Svi tierovi',
-                      }),
-                      selected: widget.tier != null,
-                      showCheckmark: false,
-                      onSelected: (_) => controller.isOpen ? controller.close() : controller.open(),
-                    ),
                   ),
-                  SizedBox(
-                    width: 260,
-                    child: TextField(
-                      controller: _search,
-                      decoration: const InputDecoration(
-                        hintText: 'Naslov ili autor',
-                        prefixIcon: Icon(Icons.search),
-                        prefixIconConstraints: BoxConstraints(minWidth: 40),
-                        isDense: true,
-                      ),
-                      onChanged: (text) => Router.neglect(
-                        context,
-                        () => context.go(TacticsScreen.pathFor(widget.filter, search: text, tier: widget.tier)),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
-      body: BlocListener<TacticsBloc, TacticsState>(
-        listenWhen: (previous, current) => previous is! TacticsLoaded && current is TacticsLoaded,
-        listener: (context, state) => _syncWithRoute(),
-        child: BlocConsumer<TacticsBloc, TacticsState>(
-          listenWhen: (previous, current) => current is TacticsLoaded && current.notice != null,
-          listener: (context, state) => _showNotice((state as TacticsLoaded).notice!),
-          builder: (context, state) => switch (state) {
-            TacticsLoading() => const LoadingView(),
-            TacticsFailure() => FailureView(onRetry: () => _bloc.add(const TacticsRequested())),
-            TacticsEmpty() => const EmptyView(title: 'Još nema taktika.'),
-            TacticsLoaded() => Row(
-              children: [
-                Expanded(
-                  child: TacticTable(
-                    tactics: state.visible,
-                    tierList: state.tierList,
-                    selectedId: state.selectedId,
-                    onSelect: (tactic) => _goTo(selected: tactic.id),
-                  ),
-                ),
-                if (state.selected case final selected?) ...[
-                  const VerticalDivider(width: 1),
-                  SizedBox(
-                    width: 360,
-                    child: TacticPanel(
-                      key: ValueKey(selected.id),
-                      tactic: selected,
-                      tier: state.tierList.tierOf(selected),
-                      variant: widget.variant,
-                      early: widget.early,
-                      onVariantSelected: (index) => _goTo(selected: selected.id, variant: index, early: widget.early),
-                      onEarlySelected: (value) => _goTo(selected: selected.id, variant: widget.variant, early: value),
-                      onClose: _goTo,
-                      busy: state.isBusy,
-                      onHide: state.actionsFor(selected.id).contains(TacticAction.hide)
-                          ? () => confirmHide(context, selected)
-                          : null,
-                      onRestore: state.actionsFor(selected.id).contains(TacticAction.restore)
-                          ? () => _bloc.add(TacticActionRequested(selected.id, TacticAction.restore))
-                          : null,
-                      onEdit: state.canEdit(selected.id)
-                          ? () => context.push(TacticEditorScreen.pathFor(selected.id))
-                          : null,
-                      onPlace: state.canPlace(selected.id)
-                          ? (tier) => _bloc.add(TacticTierChanged(selected.id, tier))
-                          : null,
+          body: MultiBlocListener(
+            listeners: [
+              BlocListener<TacticsBloc, TacticsState>(
+                listenWhen: (previous, current) => previous is! TacticsLoaded && current is TacticsLoaded,
+                listener: (context, state) => _syncWithRoute(),
+              ),
+              BlocListener<TacticsBloc, TacticsState>(
+                listenWhen: (previous, current) =>
+                    previous is TacticsLoaded && current is TacticsLoaded && previous.selectedId != current.selectedId,
+                listener: (context, state) {
+                  final selectedId = (state as TacticsLoaded).selectedId;
+                  if (selectedId != widget.selectedId) _goTo(selected: selectedId);
+                },
+              ),
+            ],
+            child: BlocConsumer<TacticsBloc, TacticsState>(
+              listenWhen: (previous, current) => current is TacticsLoaded && current.notice != null,
+              listener: (context, state) => _showNotice((state as TacticsLoaded).notice!),
+              builder: (context, state) => switch (state) {
+                TacticsLoading() => const LoadingView(),
+                TacticsFailure() => FailureView(onRetry: () => _bloc.add(const TacticsRequested())),
+                TacticsEmpty() => const EmptyView(title: 'Još nema taktika.'),
+                TacticsLoaded() => Row(
+                  children: [
+                    Expanded(
+                      child: _focusable(
+                        TacticTable(
+                          tactics: state.visible,
+                          tierList: state.tierList,
+                          selectedId: state.selectedId,
+                          onSelect: _open,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ],
+                    if (state.selected case final selected?) ...[
+                      const VerticalDivider(width: 1),
+                      SizedBox(
+                        width: 360,
+                        child: TacticPanel(
+                          key: ValueKey(selected.id),
+                          tactic: selected,
+                          tier: state.tierList.tierOf(selected),
+                          variant: widget.variant,
+                          early: widget.early,
+                          onVariantSelected: (index) =>
+                              _goTo(selected: selected.id, variant: index, early: widget.early),
+                          onEarlySelected: (value) =>
+                              _goTo(selected: selected.id, variant: widget.variant, early: value),
+                          onClose: _goTo,
+                          busy: state.isBusy,
+                          onHide: state.actionsFor(selected.id).contains(TacticAction.hide) ? _hide : null,
+                          onRestore: state.actionsFor(selected.id).contains(TacticAction.restore) ? _restore : null,
+                          onEdit: state.canEdit(selected.id) ? _edit : null,
+                          onPlace: state.canPlace(selected.id)
+                              ? (tier) => _bloc.add(TacticTierChanged(selected.id, tier))
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              },
             ),
-          },
+          ),
         ),
       ),
     );

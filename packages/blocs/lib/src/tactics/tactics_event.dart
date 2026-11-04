@@ -46,6 +46,12 @@ final class TacticSelected extends TacticsEvent {
   final TacticId? id;
 }
 
+final class TacticSelectionMoved extends TacticsEvent {
+  const TacticSelectionMoved(this.delta);
+
+  final int delta;
+}
+
 final class TacticActionRequested extends TacticsEvent {
   const TacticActionRequested(this.id, this.action, {this.reason});
 

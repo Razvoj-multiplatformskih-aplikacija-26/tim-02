@@ -2,6 +2,7 @@ import 'package:backoffice/app.dart';
 import 'package:backoffice/dependencies.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:ui/ui.dart';
@@ -34,7 +35,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Draven na nivou 9'), findsNWidgets(2));
 
-    await tester.tap(find.byTooltip('Zatvori'));
+    await tester.tap(find.byTooltip('Zatvori (Esc)'));
     await tester.pumpAndSettle();
     expect(find.text('Draven na nivou 9'), findsOneWidget);
   });
@@ -43,9 +44,9 @@ void main() {
     await pumpBackoffice(tester);
     await tester.tap(find.text('Draven na nivou 9'));
     await tester.pumpAndSettle();
-    expect(find.text('Vrati u javni prikaz'), findsNothing);
+    expect(find.text('Vrati u javni prikaz (R)'), findsNothing);
 
-    await tester.tap(find.text('Sakrij'));
+    await tester.tap(find.text('Sakrij (H)'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Obrazloženje'), 'Kopija');
     await tester.pump();
@@ -58,10 +59,10 @@ void main() {
     expect(find.text('Taktika je sakrivena.'), findsOneWidget);
     expect(find.text('Kopija tuđe taktike'), findsOneWidget);
 
-    await tester.tap(find.text('Vrati u javni prikaz'));
+    await tester.tap(find.text('Vrati u javni prikaz (R)'));
     await tester.pumpAndSettle();
-    expect(find.text('Vrati u javni prikaz'), findsNothing);
-    expect(find.text('Sakrij'), findsOneWidget);
+    expect(find.text('Vrati u javni prikaz (R)'), findsNothing);
+    expect(find.text('Sakrij (H)'), findsOneWidget);
   });
 
   testWidgets('edits the title and a board of a tactic and saves it', (tester) async {
@@ -69,7 +70,7 @@ void main() {
     await pumpBackoffice(tester);
     await tester.tap(find.text('Draven na nivou 9'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Uredi'));
+    await tester.tap(find.text('Uredi (E)'));
     await tester.pumpAndSettle();
     expect(find.text('UREDI TAKTIKU'), findsOneWidget);
 
@@ -98,7 +99,7 @@ void main() {
     await pumpBackoffice(tester);
     await tester.tap(find.text('Draven na nivou 9'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Uredi'));
+    await tester.tap(find.text('Uredi (E)'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextFormField, 'Naslov'), 'Draven i Ezreal');
     await tester.pump();
@@ -125,6 +126,54 @@ void main() {
     expect(find.text('Tier: A'), findsOneWidget);
   });
 
+  testWidgets('moves the selection with the arrows, hides with H, edits with E and clears it with Esc', (tester) async {
+    await pumpBackoffice(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(find.text('AP brzi nivo 9 sa Alune'), findsNWidgets(2));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(find.text('Primal Flex'), findsNWidgets(2));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyH);
+    await tester.pumpAndSettle();
+    expect(find.text('Sakriti taktiku?'), findsOneWidget);
+    await tester.tap(find.text('Odustani'));
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyE);
+    await tester.pumpAndSettle();
+    expect(find.text('UREDI TAKTIKU'), findsOneWidget);
+    await tester.tap(find.text('Odustani'));
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.text('Primal Flex'), findsOneWidget);
+  });
+
+  testWidgets('outlines the table only after an arrow key and drops the outline on a click', (tester) async {
+    final outline = find.byWidgetPredicate(
+      (widget) => switch (widget) {
+        DecoratedBox(position: DecorationPosition.foreground, decoration: BoxDecoration(border: _?)) => true,
+        _ => false,
+      },
+    );
+    await pumpBackoffice(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pump();
+    expect(outline, findsNothing);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(outline, findsOneWidget);
+
+    await tester.tap(find.text('Primal Flex'));
+    await tester.pumpAndSettle();
+    expect(outline, findsNothing);
+  });
+
   testWidgets('searches the tactics by title or author', (tester) async {
     await pumpBackoffice(tester);
     final search = find.widgetWithText(TextField, 'Naslov ili autor');
@@ -137,6 +186,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Draven na nivou 9'), findsOneWidget);
     expect(find.text('Solar Blossom'), findsNothing);
+  });
+
+  testWidgets('types H into the search without hiding the selected tactic', (tester) async {
+    await pumpBackoffice(tester);
+    await tester.tap(find.text('Draven na nivou 9'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextField, 'Naslov ili autor'));
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyH);
+    await tester.pumpAndSettle();
+    expect(find.text('Sakriti taktiku?'), findsNothing);
   });
 
   testWidgets('shows only the tactics of the chosen tier', (tester) async {
