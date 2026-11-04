@@ -65,10 +65,6 @@ class TacticDetailScreen extends StatelessWidget {
   Widget? _actions(BuildContext context, TacticsLoaded state) {
     final tactic = state.tactic(id);
     if (tactic == null) return null;
-    final copy = switch (context.watch<LineupsBloc>().state) {
-      LineupsLoaded(:final lineups) => lineups.where((lineup) => lineup.basedOn == id).firstOrNull,
-      _ => null,
-    };
     final Widget button;
     if (state.actionsFor(id).contains(TacticAction.archive)) {
       button = state.inFlightId == id
@@ -82,18 +78,12 @@ class TacticDetailScreen extends StatelessWidget {
               icon: const Icon(Icons.archive_outlined),
               label: Text(TacticAction.archive.label),
             );
-    } else if (copy != null) {
-      button = FilledButton.tonalIcon(
-        onPressed: () => context.push('/lineups/${copy.id.value}', extra: copy),
-        icon: const Icon(Icons.bookmark_outlined),
-        label: const Text('Otvori postavu'),
-      );
     } else if (tactic.authorId != state.user.id && tactic.status is Published && tactic.variants.isNotEmpty) {
-      final query = {'from': id.value, if (variant > 0) 'variant': '$variant', if (early) 'early': '1'};
+      final query = {'from': id.value, if (variant > 0) 'variant': '$variant'};
       button = FilledButton.tonalIcon(
-        onPressed: () => context.push(Uri(path: '/lineups/new', queryParameters: query).toString()),
+        onPressed: () => context.push(Uri(path: '/drafts/new', queryParameters: query).toString()),
         icon: const Icon(Icons.bookmark_add_outlined),
-        label: const Text('Sačuvaj kao postavu'),
+        label: const Text('Sačuvaj kao nacrt'),
       );
     } else {
       return null;

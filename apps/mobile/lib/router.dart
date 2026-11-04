@@ -40,41 +40,42 @@ GoRouter createRouter() {
         ),
       ),
       GoRoute(
-        path: '/lineups/new',
+        path: '/drafts/new',
         builder: (context, state) {
           final query = state.uri.queryParameters;
-          final tactic = switch ((query['from'], context.read<TacticsBloc>().state)) {
-            (final from?, final TacticsLoaded loaded) => loaded.tactic(TacticId(from)),
-            _ => null,
-          };
+          final tactic = _tactic(context, query['from']);
           final variant = tactic?.variants.elementAtOrNull(int.tryParse(query['variant'] ?? '') ?? 0);
-          return _lineupEditor(context, switch ((tactic, variant)) {
-            (final tactic?, final variant?) => LineupEditorState.fromTactic(
-              tactic,
-              variant,
-              early: query['early'] == '1',
-            ),
+          return _draftEditor(context, switch ((tactic, variant)) {
+            (final tactic?, final variant?) => LineupEditorState.fromTactic(tactic, variant),
             _ => const LineupEditorState(),
           });
         },
       ),
       GoRoute(
-        path: '/lineups/:id',
-        redirect: (context, state) => state.extra is PersonalLineup ? null : '/mine',
-        builder: (context, state) => _lineupEditor(context, LineupEditorState.edit(state.extra! as PersonalLineup)),
+        path: '/drafts/:id',
+        redirect: (context, state) => _tactic(context, state.pathParameters['id']) == null ? '/mine' : null,
+        builder: (context, state) =>
+            _draftEditor(context, LineupEditorState.edit(_tactic(context, state.pathParameters['id'])!)),
       ),
     ],
   );
 }
 
-Widget _lineupEditor(BuildContext context, LineupEditorState initial) {
+Tactic? _tactic(BuildContext context, String? id) => switch ((id, context.read<TacticsBloc>().state)) {
+  (final id?, final TacticsLoaded loaded) => loaded.tactic(TacticId(id)),
+  _ => null,
+};
+
+Widget _draftEditor(BuildContext context, LineupEditorState initial) {
   final dependencies = context.read<AppDependencies>();
   return BlocProvider(
     create: (_) => LineupEditorBloc(
-      saveLineup: dependencies.saveLineup,
-      deleteLineup: dependencies.deleteLineup,
+      saveDraft: dependencies.saveDraft,
+      deleteDraft: dependencies.deleteDraft,
+      getCatalog: dependencies.getCatalog,
+      user: dependencies.user,
       initial: initial,
-    ),
+    )..add(const LineupEditorStarted()),
     child: const LineupEditorScreen(),
   );
 }

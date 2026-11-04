@@ -9,5 +9,7 @@ abstract interface class TacticRepository {
 
   Future<Tactic> save(Tactic tactic);
 
+  Future<void> delete(TacticId id);
+
   Future<TierList> saveTierList(TierList tierList);
 }

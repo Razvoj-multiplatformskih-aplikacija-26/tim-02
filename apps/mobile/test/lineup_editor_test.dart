@@ -20,24 +20,27 @@ void main() {
   Future<void> openEditor(WidgetTester tester) async {
     await pumpOnPhone(tester);
     await openTab(tester, 'Moje kompozicije');
-    await tester.tap(find.text('Nova postava'));
+    await tester.tap(find.text('Novi nacrt'));
     await tester.pumpAndSettle();
   }
 
-  Future<void> openLineup(WidgetTester tester, String name) async {
+  Future<void> openDraft(WidgetTester tester, String title) async {
     await pumpOnPhone(tester);
     await openTab(tester, 'Moje kompozicije');
-    await tester.scrollUntilVisible(find.text(name), 300);
-    await tester.tap(find.text(name));
+    await tester.scrollUntilVisible(find.text(title), 300);
+    await tester.tap(find.text(title));
     await tester.pumpAndSettle();
   }
 
-  Future<void> pick<T extends Object>(WidgetTester tester, String label, String option) async {
-    final field = find.descendant(of: find.widgetWithText(DropdownMenu<T>, label), matching: find.byType(TextField));
-    await tester.ensureVisible(field);
-    await tester.enterText(field, option);
+  Future<void> pick(WidgetTester tester, String label, String option) async {
+    await tester.ensureVisible(find.text(label));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(MenuItemButton, option).last);
+    await tester.tap(find.text(label));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    await tester.enterText(find.descendant(of: sheet, matching: find.byType(TextField)), option);
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: sheet, matching: find.widgetWithText(ListTile, option)).first);
     await tester.pumpAndSettle();
   }
 
@@ -50,24 +53,33 @@ void main() {
     final semantics = tester.ensureSemantics();
     await openEditor(tester);
     await chooseHex(tester, 'Red 1, kolona 1');
-    await pick<Champion>(tester, 'Šampion', 'Ahri');
+    await pick(tester, 'Šampion', 'Ahri');
     final message = 'Šampion može nositi najviše ${Unit.maxItems} predmeta.';
     for (final item in seedCatalog.items.take(Unit.maxItems)) {
-      await pick<Item>(tester, 'Dodaj predmet', item.name);
+      await pick(tester, 'Dodaj predmet', item.name);
     }
     expect(find.text(message), findsNothing);
 
-    await pick<Item>(tester, 'Dodaj predmet', seedCatalog.items[Unit.maxItems].name);
+    await pick(tester, 'Dodaj predmet', seedCatalog.items[Unit.maxItems].name);
     expect(find.text(message), findsOneWidget);
     semantics.dispose();
   });
 
-  testWidgets('places a champion on the tapped hex and saves the lineup under Postave', (tester) async {
+  testWidgets('keeps a draft without champions on the board from being saved', (tester) async {
+    await openEditor(tester);
+    await tester.enterText(find.widgetWithText(TextField, 'Naslov'), 'Prazan nacrt');
+    await tester.tap(find.text('Sačuvaj'));
+    await tester.pumpAndSettle();
+    expect(find.text('Svaka varijanta mora imati šampione na tabli za kasnu igru.'), findsOneWidget);
+    expect(find.text('NOVI NACRT'), findsOneWidget);
+  });
+
+  testWidgets('places and drags a champion and saves the draft under Nacrti', (tester) async {
     final semantics = tester.ensureSemantics();
     await openEditor(tester);
-    await tester.enterText(find.widgetWithText(TextField, 'Naziv postave'), 'Moja postava');
+    await tester.enterText(find.widgetWithText(TextField, 'Naslov'), 'Moj nacrt');
     await chooseHex(tester, 'Red 1, kolona 1');
-    await pick<Champion>(tester, 'Šampion', 'Ahri');
+    await pick(tester, 'Šampion', 'Ahri');
     await tester.tap(find.text('Postavi na tablu'));
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel(RegExp(r'^Red 1, kolona 1\nAhri')), findsOneWidget);
@@ -82,15 +94,15 @@ void main() {
 
     await tester.tap(find.text('Sačuvaj'));
     await tester.pumpAndSettle();
-    expect(find.text('Postava je sačuvana.'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Moja postava'), 300);
-    expect(find.text('POSTAVE'), findsOneWidget);
+    expect(find.text('Nacrt je sačuvan.'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Moj nacrt'), 300);
+    expect(find.text('NACRTI'), findsOneWidget);
     semantics.dispose();
   });
 
   testWidgets('asks before throwing away unsaved changes', (tester) async {
     await openEditor(tester);
-    await tester.enterText(find.widgetWithText(TextField, 'Naziv postave'), 'Moja postava');
+    await tester.enterText(find.widgetWithText(TextField, 'Naslov'), 'Moj nacrt');
     await tester.pump();
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
@@ -99,23 +111,23 @@ void main() {
     await tester.tap(find.text('Odbaci'));
     await tester.pumpAndSettle();
     expect(find.text('MOJE KOMPOZICIJE'), findsOneWidget);
-    expect(find.text('NOVA POSTAVA'), findsNothing);
+    expect(find.text('NOVI NACRT'), findsNothing);
   });
 
-  testWidgets('renames a saved lineup without adding another', (tester) async {
-    await openLineup(tester, 'Fae Ezreal za rangirano');
-    expect(find.text('UREDI POSTAVU'), findsOneWidget);
+  testWidgets('renames a draft without adding another', (tester) async {
+    await openDraft(tester, 'Defender Cassiopeia');
+    expect(find.text('UREDI NACRT'), findsOneWidget);
 
-    await tester.enterText(find.widgetWithText(TextField, 'Naziv postave'), 'Fae Ezreal');
+    await tester.enterText(find.widgetWithText(TextField, 'Naslov'), 'Cassiopeia tank');
     await tester.tap(find.text('Sačuvaj'));
     await tester.pumpAndSettle();
-    expect(find.text('Fae Ezreal'), findsOneWidget);
-    expect(find.text('Fae Ezreal za rangirano'), findsNothing);
-    expect(find.text('Draven sa zmajevima'), findsOneWidget);
+    expect(find.text('Cassiopeia tank'), findsOneWidget);
+    expect(find.text('Defender Cassiopeia'), findsNothing);
+    expect(find.text('Riftbeast nivo 9'), findsOneWidget);
   });
 
-  testWidgets('brings a removed champion back with Poništi and deletes the lineup after confirming', (tester) async {
-    await openLineup(tester, 'Fae Ezreal za rangirano');
+  testWidgets('brings a removed champion back with Poništi and deletes the draft after confirming', (tester) async {
+    await openDraft(tester, 'Defender Cassiopeia');
     final remove = find.byTooltip('Ukloni').first;
     await tester.ensureVisible(remove);
     await tester.pumpAndSettle();
@@ -128,35 +140,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Odbaciti izmene?'), findsNothing);
 
-    await tester.tap(find.text('Fae Ezreal za rangirano'));
+    await tester.tap(find.text('Defender Cassiopeia'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Obriši postavu'));
+    await tester.tap(find.byTooltip('Obriši nacrt'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Obriši'));
     await tester.pumpAndSettle();
-    expect(find.text('Postava je obrisana.'), findsOneWidget);
-    expect(find.text('Fae Ezreal za rangirano'), findsNothing);
+    expect(find.text('Nacrt je obrisan.'), findsOneWidget);
+    expect(find.text('Defender Cassiopeia'), findsNothing);
   });
 
-  testWidgets("saves another creator's tactic as a lineup once and then opens it", (tester) async {
+  testWidgets("saves another creator's tactic as my draft", (tester) async {
     await pumpOnPhone(tester);
     await tester.tap(find.text('Draven na nivou 9'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sačuvaj kao postavu'));
+    await tester.tap(find.text('Sačuvaj kao nacrt'));
     await tester.pumpAndSettle();
-    expect(find.text('NOVA POSTAVA'), findsOneWidget);
+    expect(find.text('NOVI NACRT'), findsOneWidget);
     expect(find.text('Draven na nivou 9'), findsOneWidget);
 
     await tester.tap(find.text('Sačuvaj'));
     await tester.pumpAndSettle();
-    expect(find.text('Postava je sačuvana.'), findsOneWidget);
+    expect(find.text('Nacrt je sačuvan.'), findsOneWidget);
     expect(find.text('MOJE KOMPOZICIJE'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Draven na nivou 9'), 300);
-
-    await openTab(tester, 'Kompozicije');
-    await tester.tap(find.text('Draven na nivou 9'));
-    await tester.pumpAndSettle();
-    expect(find.text('Otvori postavu'), findsOneWidget);
-    expect(find.text('Sačuvaj kao postavu'), findsNothing);
+    expect(find.text('NACRTI'), findsOneWidget);
   });
 }

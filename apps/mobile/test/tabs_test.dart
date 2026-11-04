@@ -110,13 +110,14 @@ void main() {
     expect(find.text('Arhiviraj'), findsNothing);
   });
 
-  testWidgets('lists my saved lineups in their own section below the drafts', (tester) async {
+  testWidgets('lists my published tactics and drafts with no separate lineups', (tester) async {
     await pumpApp(tester);
     await openTab(tester, 'Moje kompozicije');
     expect(find.text('MOJE KOMPOZICIJE'), findsOneWidget);
-    expect(find.text('AP brzi nivo 9 sa Alune'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Fae Ezreal za rangirano'), 300);
-    expect(find.text('POSTAVE'), findsOneWidget);
+    expect(find.text('OBJAVLJENE'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('AP brzi nivo 9 sa Alune'), 300);
+    expect(find.text('NACRTI'), findsOneWidget);
+    expect(find.text('POSTAVE'), findsNothing);
   });
 
   testWidgets('shows my archived tactics only behind the archive toggle', (tester) async {
@@ -129,7 +130,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Warwick reroll'), findsOneWidget);
     expect(find.text('Caitlyn Hunters'), findsNothing);
-    expect(find.text('Nova postava'), findsNothing);
+    expect(find.text('Novi nacrt'), findsNothing);
 
     await tester.tap(find.byTooltip('Arhivirane'));
     await tester.pumpAndSettle();

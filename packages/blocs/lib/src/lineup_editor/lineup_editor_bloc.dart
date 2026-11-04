@@ -8,10 +8,20 @@ part 'lineup_editor_state.dart';
 
 final class LineupEditorBloc extends Bloc<LineupEditorEvent, LineupEditorState> {
   LineupEditorBloc({
-    required this.saveLineup,
-    required this.deleteLineup,
+    required this.saveDraft,
+    required this.deleteDraft,
+    required this.getCatalog,
+    required this.user,
     LineupEditorState initial = const LineupEditorState(),
   }) : super(initial) {
+    on<LineupEditorStarted>((event, emit) async {
+      emit(state.copyWith(status: LineupEditorStatus.editing));
+      try {
+        emit(state.copyWith(catalog: await getCatalog()));
+      } on Exception {
+        emit(state.copyWith(status: LineupEditorStatus.failed));
+      }
+    });
     on<LineupNameChanged>((event, emit) => emit(state.copyWith(name: event.text)));
     on<LineupHexChosen>((event, emit) {
       final unit = state.lineup.placements.where((p) => p.position == event.position).firstOrNull?.unit;
@@ -53,22 +63,44 @@ final class LineupEditorBloc extends Bloc<LineupEditorEvent, LineupEditorState> 
     on<LineupEditorDeleted>(_onDeleted);
   }
 
-  final SaveLineup saveLineup;
-  final DeleteLineup deleteLineup;
+  final SaveDraft saveDraft;
+  final DeleteDraft deleteDraft;
+  final GetCatalog getCatalog;
+  final User user;
 
   Future<void> _onSubmitted(LineupEditorSubmitted event, Emitter<LineupEditorState> emit) async {
     if (state.status == LineupEditorStatus.saving) return;
-    switch (LineupName.parse(state.name ?? '')) {
-      case Failure():
-        emit(state.copyWith(name: state.name ?? ''));
-      case Success(value: final name):
-        emit(state.copyWith(status: LineupEditorStatus.saving));
-        try {
-          final saved = await saveLineup(id: state.id, name: name, lineup: state.lineup, basedOn: state.basedOn);
-          emit(state.copyWith(status: LineupEditorStatus.saved, saved: saved));
-        } on Exception {
-          emit(state.copyWith(status: LineupEditorStatus.failed));
-        }
+    final title = state.name ?? '';
+    if (Tactic.parseTitle(title) is Failure) {
+      emit(state.copyWith(name: title));
+      return;
+    }
+    final first = state.variants.firstOrNull;
+    final variants = [
+      first?.copyWith(lineup: state.lineup) ??
+          TacticVariant(
+            name: title.trim(),
+            playstyle: Playstyle.fast8,
+            difficulty: Difficulty.medium,
+            early: const Lineup.empty(),
+            lineup: state.lineup,
+            flex: const [],
+            itemPriority: const [],
+            tip: '',
+            stageTips: const {},
+          ),
+      ...state.variants.skip(1),
+    ];
+    emit(state.copyWith(status: LineupEditorStatus.saving));
+    try {
+      switch (await saveDraft(id: state.id, by: user, title: title, variants: variants)) {
+        case Success(:final value):
+          emit(state.copyWith(status: LineupEditorStatus.saved, saved: value));
+        case Failure(:final error):
+          emit(state.copyWith(status: LineupEditorStatus.editing, error: error));
+      }
+    } on Exception {
+      emit(state.copyWith(status: LineupEditorStatus.failed));
     }
   }
 
@@ -77,8 +109,12 @@ final class LineupEditorBloc extends Bloc<LineupEditorEvent, LineupEditorState> 
     if (id == null || state.status == LineupEditorStatus.saving) return;
     emit(state.copyWith(status: LineupEditorStatus.saving));
     try {
-      await deleteLineup(id);
-      emit(state.copyWith(status: LineupEditorStatus.deleted));
+      switch (await deleteDraft(id, by: user)) {
+        case Success():
+          emit(state.copyWith(status: LineupEditorStatus.deleted));
+        case Failure(:final error):
+          emit(state.copyWith(status: LineupEditorStatus.editing, error: error));
+      }
     } on Exception {
       emit(state.copyWith(status: LineupEditorStatus.failed));
     }

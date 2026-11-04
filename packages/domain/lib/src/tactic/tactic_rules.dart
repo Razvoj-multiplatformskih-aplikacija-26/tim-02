@@ -1,4 +1,5 @@
 import '../errors.dart';
+import '../identifiers.dart';
 import '../result.dart';
 import '../user.dart';
 import 'hide_reason.dart';
@@ -66,12 +67,44 @@ Result<Tactic> editTactic(
   if (tactic.status is Archived) return const Failure(TacticArchived());
   return switch (Tactic.parseTitle(title)) {
     Failure(:final error) => Failure(error),
-    _ when variants.isEmpty || variants.any((v) => v.lineup.placements.isEmpty) => const Failure(EmptyBoard()),
+    _ when !_boardsFilled(variants) => const Failure(EmptyBoard()),
     Success(value: final title) => Success(
       tactic.copyWith(title: title, description: description.trim(), variants: variants, updatedAt: now.toUtc()),
     ),
   };
 }
+
+Result<Tactic> draftTactic({
+  required TacticId id,
+  required User by,
+  required String title,
+  required List<TacticVariant> variants,
+  required DateTime now,
+}) => switch (Tactic.parseTitle(title)) {
+  Failure(:final error) => Failure(error),
+  _ when !_boardsFilled(variants) => const Failure(EmptyBoard()),
+  Success(value: final title) => Success(
+    Tactic(
+      id: id,
+      authorId: by.id,
+      authorName: by.name,
+      title: title,
+      description: '',
+      carry: variants.first.lineup.carry!,
+      status: const Draft(),
+      updatedAt: now.toUtc(),
+      variants: variants,
+    ),
+  ),
+};
+
+Result<TacticId> deleteDraft(Tactic tactic, {required User by}) {
+  if (tactic.authorId != by.id || tactic.status is! Draft) return const Failure(NotAllowed());
+  return Success(tactic.id);
+}
+
+bool _boardsFilled(List<TacticVariant> variants) =>
+    variants.isNotEmpty && variants.every((v) => v.lineup.placements.isNotEmpty);
 
 bool mayEdit(Tactic tactic, User user) => AccessPolicy.canEdit(user, tactic) && tactic.status is! Archived;
 

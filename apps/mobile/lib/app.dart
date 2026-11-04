@@ -33,24 +33,15 @@ class _TftInsightsAppState extends State<TftInsightsApp> {
     final dependencies = widget.dependencies;
     return RepositoryProvider.value(
       value: dependencies,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (_) => TacticsBloc(
-              getTactics: dependencies.getTactics,
-              getTierList: dependencies.getTierList,
-              changeStatus: dependencies.changeTacticStatus,
-              placeTactic: dependencies.placeTactic,
-              clock: dependencies.clock,
-              user: dependencies.user,
-            )..add(const TacticsRequested()),
-          ),
-          BlocProvider(
-            create: (_) =>
-                LineupsBloc(getLineups: dependencies.getLineups, getCatalog: dependencies.getCatalog)
-                  ..add(const LineupsRequested()),
-          ),
-        ],
+      child: BlocProvider(
+        create: (_) => TacticsBloc(
+          getTactics: dependencies.getTactics,
+          getTierList: dependencies.getTierList,
+          changeStatus: dependencies.changeTacticStatus,
+          placeTactic: dependencies.placeTactic,
+          clock: dependencies.clock,
+          user: dependencies.user,
+        )..add(const TacticsRequested()),
         child: MaterialApp.router(
           title: 'TFT Insights',
           theme: TftTheme.light(),

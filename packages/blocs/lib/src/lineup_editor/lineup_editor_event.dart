@@ -4,6 +4,10 @@ sealed class LineupEditorEvent {
   const LineupEditorEvent();
 }
 
+final class LineupEditorStarted extends LineupEditorEvent {
+  const LineupEditorStarted();
+}
+
 final class LineupNameChanged extends LineupEditorEvent {
   const LineupNameChanged(this.text);
 

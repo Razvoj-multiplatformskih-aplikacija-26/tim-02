@@ -10,27 +10,24 @@ class LineupEditorScreen extends StatelessWidget {
 
   void _onStateChanged(BuildContext context, LineupEditorState state) {
     final messenger = ScaffoldMessenger.of(context);
-    switch (state.status) {
-      case LineupEditorStatus.saved:
-        context.read<LineupsBloc>().add(LineupSaved(state.saved!));
+    switch (state) {
+      case LineupEditorState(status: LineupEditorStatus.saved, :final saved?):
+        context.read<TacticsBloc>().add(TacticSaved(saved));
         messenger
           ..clearSnackBars()
-          ..showSnackBar(const SnackBar(content: Text('Postava je sačuvana.')));
-        if (state.basedOn != null && state.id == null) {
-          context.go('/mine');
-        } else {
-          context.pop();
-        }
-      case LineupEditorStatus.deleted:
-        context.read<LineupsBloc>().add(LineupDeleted(state.id!));
+          ..showSnackBar(const SnackBar(content: Text('Nacrt je sačuvan.')));
+        context.go('/mine');
+      case LineupEditorState(status: LineupEditorStatus.deleted, :final id?):
+        context.read<TacticsBloc>().add(TacticDeleted(id));
         messenger
           ..clearSnackBars()
-          ..showSnackBar(const SnackBar(content: Text('Postava je obrisana.')));
-        context.pop();
-      case LineupEditorStatus.failed:
+          ..showSnackBar(const SnackBar(content: Text('Nacrt je obrisan.')));
+        context.go('/mine');
+      case LineupEditorState(:final error?):
+        messenger.showSnackBar(SnackBar(content: Text(error.message)));
+      case LineupEditorState(status: LineupEditorStatus.failed, catalog: _?):
         messenger.showSnackBar(const SnackBar(content: Text('Izmena nije sačuvana.')));
-      case LineupEditorStatus.editing || LineupEditorStatus.saving:
-        break;
+      case _:
     }
   }
 
@@ -39,8 +36,8 @@ class LineupEditorScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog.adaptive(
-        title: const Text('Obrisati postavu?'),
-        content: const Text('Postava se briše sa ovog uređaja.'),
+        title: const Text('Obrisati nacrt?'),
+        content: const Text('Obrisani nacrt ne može da se vrati.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Odustani')),
           FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Obriši')),
@@ -54,7 +51,8 @@ class LineupEditorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = context.read<LineupEditorBloc>();
     return BlocConsumer<LineupEditorBloc, LineupEditorState>(
-      listenWhen: (previous, current) => previous.status != current.status,
+      listenWhen: (previous, current) =>
+          previous.status != current.status || (current.error != null && previous.error != current.error),
       listener: _onStateChanged,
       builder: (context, state) {
         final saving = state.status == LineupEditorStatus.saving;
@@ -65,29 +63,27 @@ class LineupEditorScreen extends StatelessWidget {
           },
           child: Scaffold(
             appBar: AppBar(
-              title: Text(state.id == null ? 'NOVA POSTAVA' : 'UREDI POSTAVU'),
+              title: Text(state.id == null ? 'NOVI NACRT' : 'UREDI NACRT'),
               actions: [
                 if (state.id != null)
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    tooltip: 'Obriši postavu',
+                    tooltip: 'Obriši nacrt',
                     onPressed: saving ? null : () => _delete(context),
                   ),
               ],
             ),
-            body: BlocBuilder<LineupsBloc, LineupsState>(
-              builder: (context, lineups) => switch (lineups) {
-                LineupsLoading() => const LoadingView(),
-                LineupsFailure() => FailureView(
-                  onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested()),
-                ),
-                LineupsLoaded(:final catalog) => _Editor(state: state, catalog: catalog),
-              },
-            ),
+            body: switch (state.catalog) {
+              null when state.status == LineupEditorStatus.failed => FailureView(
+                onRetry: () => bloc.add(const LineupEditorStarted()),
+              ),
+              null => const LoadingView(),
+              final catalog => _Editor(state: state, catalog: catalog),
+            },
             bottomNavigationBar: SafeArea(
               minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: FilledButton(
-                onPressed: saving ? null : () => bloc.add(const LineupEditorSubmitted()),
+                onPressed: saving || state.catalog == null ? null : () => bloc.add(const LineupEditorSubmitted()),
                 child: saving
                     ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
                     : const Text('Sačuvaj'),
@@ -129,7 +125,7 @@ class _Editor extends StatelessWidget {
       children: [
         TextFormField(
           initialValue: state.name,
-          decoration: InputDecoration(labelText: 'Naziv postave', errorText: state.nameError?.message),
+          decoration: InputDecoration(labelText: 'Naslov', errorText: state.nameError?.message),
           textCapitalization: TextCapitalization.sentences,
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onChanged: (text) => bloc.add(LineupNameChanged(text)),

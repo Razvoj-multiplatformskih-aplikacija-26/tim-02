@@ -34,7 +34,10 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
         emit(
           TacticsLoaded(
             user: user,
-            tactics: [for (final t in current.tactics) t.id == saved.id ? saved : t],
+            tactics: [
+              if (current.tactic(saved.id) == null) saved,
+              for (final t in current.tactics) t.id == saved.id ? saved : t,
+            ],
             tierList: current.tierList,
             actions: {
               ...current.actions,
@@ -44,6 +47,25 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
             search: current.search,
             tier: current.tier,
             selectedId: current.selectedId,
+          ),
+        );
+      }
+    });
+    on<TacticDeleted>((event, emit) {
+      if (state case final TacticsLoaded current) {
+        emit(
+          TacticsLoaded(
+            user: user,
+            tactics: [
+              for (final t in current.tactics)
+                if (t.id != event.id) t,
+            ],
+            tierList: current.tierList,
+            actions: {...current.actions}..remove(event.id),
+            filter: current.filter,
+            search: current.search,
+            tier: current.tier,
+            selectedId: current.selectedId == event.id ? null : current.selectedId,
           ),
         );
       }

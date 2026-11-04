@@ -10,7 +10,6 @@ extension DomainErrorMessage on DomainError {
     TacticArchived() => 'Arhivirana taktika ne može da se menja.',
     EmptyBoard() => 'Svaka varijanta mora imati šampione na tabli za kasnu igru.',
     NotPlaceable() => 'Na listu može samo objavljena taktika.',
-    InvalidLineupName() => 'Naziv postave mora imati od 1 do ${LineupName.maxLength} znakova.',
     NotAllowed() => 'Nemate pravo na ovu radnju.',
     HiddenByAdmin() => 'Taktiku je sakrio administrator; samo on može da je vrati.',
     InvalidTransition() => 'Ova promena stanja nije moguća.',

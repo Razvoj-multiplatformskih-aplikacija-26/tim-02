@@ -2,8 +2,6 @@ export 'src/catalog.dart';
 export 'src/errors.dart';
 export 'src/identifiers.dart';
 export 'src/lineup/lineup.dart';
-export 'src/lineup/lineup_name.dart';
-export 'src/lineup/personal_lineup.dart';
 export 'src/result.dart';
 export 'src/tactic/hide_reason.dart';
 export 'src/tactic/tactic.dart';

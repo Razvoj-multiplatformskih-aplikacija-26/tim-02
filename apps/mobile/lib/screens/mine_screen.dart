@@ -20,14 +20,16 @@ class MineScreen extends StatelessWidget {
     return refresh.handled;
   }
 
-  List<Widget> _sections(BuildContext context, List<PersonalLineup> lineups, List<Tactic> mine) {
+  List<Widget> _sections(BuildContext context, List<Tactic> mine) {
     List<Widget> tactics(Set<TacticStatusKind> kinds) => [
       for (final tactic in mine)
         if (kinds.contains(tactic.status.kind))
           ChampionTile(
             champion: tactic.carry,
             title: tactic.title,
-            onOpen: () => context.push(TacticDetailScreen.pathFor(tactic.id)),
+            onOpen: () => context.push(
+              tactic.status is Draft ? '/drafts/${tactic.id.value}' : TacticDetailScreen.pathFor(tactic.id),
+            ),
           ),
     ];
     final sections = archived
@@ -37,17 +39,6 @@ class MineScreen extends StatelessWidget {
         : [
             (TacticStatusKind.published.label, tactics({TacticStatusKind.published, TacticStatusKind.hidden})),
             (TacticStatusKind.draft.label, tactics({TacticStatusKind.draft})),
-            (
-              'Postave',
-              [
-                for (final lineup in lineups)
-                  ChampionTile(
-                    champion: lineup.lineup.carry,
-                    title: lineup.name.text,
-                    onOpen: () => context.push('/lineups/${lineup.id.value}', extra: lineup),
-                  ),
-              ],
-            ),
           ];
     return [
       for (final (label, tiles) in sections)
@@ -74,32 +65,21 @@ class MineScreen extends StatelessWidget {
       floatingActionButton: archived
           ? null
           : FloatingActionButton.extended(
-              onPressed: () => context.push('/lineups/new'),
+              onPressed: () => context.push('/drafts/new'),
               icon: const Icon(Icons.add),
-              label: const Text('Nova postava'),
+              label: const Text('Novi nacrt'),
             ),
       body: RefreshIndicator(
         onRefresh: () => _refresh(context.read<TacticsBloc>()),
         child: BlocBuilder<TacticsBloc, TacticsState>(
-          builder: (context, tacticsState) => BlocBuilder<LineupsBloc, LineupsState>(
-            builder: (context, lineupsState) => switch ((tacticsState, lineupsState)) {
-              (TacticsFailure(), _) => FailureView(
-                onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
-              ),
-              (_, LineupsFailure()) => FailureView(
-                onRetry: () => context.read<LineupsBloc>().add(const LineupsRequested()),
-              ),
-              (TacticsLoading(), _) || (_, LineupsLoading()) => const LoadingView(),
-              (_, LineupsLoaded(:final lineups)) => switch (_sections(
-                context,
-                lineups,
-                tacticsState is TacticsLoaded ? tacticsState.mine : const [],
-              )) {
-                [] => EmptyView(title: archived ? 'Nemate arhiviranih kompozicija.' : 'Još nemate svojih kompozicija.'),
-                final sections => ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: sections),
-              },
+          builder: (context, state) => switch (state) {
+            TacticsFailure() => FailureView(onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested())),
+            TacticsLoading() => const LoadingView(),
+            _ => switch (_sections(context, state is TacticsLoaded ? state.mine : const [])) {
+              [] => EmptyView(title: archived ? 'Nemate arhiviranih kompozicija.' : 'Još nemate svojih kompozicija.'),
+              final sections => ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: sections),
             },
-          ),
+          },
         ),
       ),
     );

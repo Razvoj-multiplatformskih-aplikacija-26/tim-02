@@ -1,6 +1,5 @@
 import 'package:backoffice/app.dart';
 import 'package:backoffice/dependencies.dart';
-import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,12 +76,12 @@ void main() {
     await tester.enterText(find.widgetWithText(TextFormField, 'Naslov'), 'Draven i Ezreal');
     await tester.tap(find.bySemanticsLabel(RegExp('^Red 1, kolona 1')));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.descendant(of: find.widgetWithText(DropdownMenu<Champion>, 'Šampion'), matching: find.byType(TextField)),
-      'Ahri',
-    );
+    await tester.tap(find.text('Šampion'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(MenuItemButton, 'Ahri').last);
+    final sheet = find.byType(BottomSheet);
+    await tester.enterText(find.descendant(of: sheet, matching: find.byType(TextField)), 'Ahri');
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: sheet, matching: find.widgetWithText(ListTile, 'Ahri')).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Postavi na tablu'));
     await tester.pumpAndSettle();

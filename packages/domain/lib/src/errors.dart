@@ -83,12 +83,3 @@ final class InvalidTransition extends DomainError {
 final class NotFound extends DomainError {
   const NotFound();
 }
-
-final class InvalidLineupName extends DomainError {
-  const InvalidLineupName(this.length);
-
-  final int length;
-
-  @override
-  List<Object?> get props => [length];
-}

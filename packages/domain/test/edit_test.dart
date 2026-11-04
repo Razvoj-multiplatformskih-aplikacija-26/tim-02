@@ -65,6 +65,37 @@ void main() {
     });
   });
 
+  group('draftTactic', () {
+    Result<Tactic> draft({String title = 'Moj nacrt', List<TacticVariant>? variants}) => draftTactic(
+      id: const TacticId('t-9'),
+      by: marko,
+      title: title,
+      variants: variants ?? [variant(board)],
+      now: now,
+    );
+
+    test('makes my own draft with the carry taken from its board', () {
+      final made = draft(title: ' Moj nacrt ').valueOrNull;
+      expect(made?.status, const Draft());
+      expect(made?.authorId, marko.id);
+      expect(made?.title, 'Moj nacrt');
+      expect(made?.carry, ahri);
+    });
+
+    test('needs a title and champions on the final board', () {
+      expect(draft(title: ''), const Failure<Tactic>(InvalidTacticTitle(0)));
+      expect(draft(variants: [variant(const Lineup.empty())]), const Failure<Tactic>(EmptyBoard()));
+    });
+  });
+
+  group('deleteDraft', () {
+    test('lets only the author delete, and only a draft', () {
+      expect(deleteDraft(tactic('t-1', const Draft()), by: marko), const Success(TacticId('t-1')));
+      expect(deleteDraft(tactic('t-1', const Draft()), by: luka), const Failure<TacticId>(NotAllowed()));
+      expect(deleteDraft(tactic('t-1', Published(at: now)), by: marko), const Failure<TacticId>(NotAllowed()));
+    });
+  });
+
   group('placeTactic', () {
     const list = TierList(
       patch: PatchId('18.5c'),

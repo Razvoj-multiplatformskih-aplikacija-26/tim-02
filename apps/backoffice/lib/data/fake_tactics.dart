@@ -52,6 +52,12 @@ final class FakeTactics implements TacticRepository, CatalogRepository {
   }
 
   @override
+  Future<void> delete(TacticId id) async {
+    await _roundTrip();
+    _tactics.removeWhere((t) => t.id == id);
+  }
+
+  @override
   Future<TierList> saveTierList(TierList tierList) async {
     await _roundTrip();
     return _tierList = tierList;

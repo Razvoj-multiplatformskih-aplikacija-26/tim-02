@@ -47,9 +47,9 @@ Završena je prva kontrolna tačka: mobilna aplikacija i backoffice rade nad ist
 
 - **Mobilna aplikacija** (Android), kao kreator Marko, koji ima sve mogućnosti korisnika i uz to vidi svoje taktike u svim stanjima:
   - **Kompozicije:** javna tier lista patcha 18.5c (S, A, B, C, Situaciona) sa objavljenim taktikama svih kreatora.
-  - **Moje kompozicije:** Markove objavljene taktike, nacrti i lične postave; arhivirane su iza prekidača u zaglavlju.
-  - Detalj taktike sa varijantama, ranom i kasnom tablom, fleksibilnim jedinicama, prioritetom predmeta i savetima po fazama, i arhiviranje uz potvrdu.
-  - Uređivač ličnih postava koji proverava pravila (najviše tri predmeta po šampionu, jedan šampion po polju) i javlja greške na srpskom.
+  - **Moje kompozicije:** Objavljene (ono što je javno) i Nacrti (taktike koje još nisu objavljene); arhivirane su iza prekidača u zaglavlju. Nacrt uvek ima postavu, a saveti nisu obavezni.
+  - Detalj taktike sa varijantama, ranom i kasnom tablom, fleksibilnim jedinicama, prioritetom predmeta i savetima po fazama; arhiviranje svoje taktike uz potvrdu, a tuđa objavljena taktika može da se sačuva kao nacrt.
+  - Uređivač nacrta sa tablom na kojoj se šampioni postavljaju i prevlače; proverava pravila (najviše tri predmeta po šampionu, jedan šampion po polju, tabla ne sme biti prazna) i javlja greške na srpskom. Nacrt može i da se obriše.
   - Povlačenje za osvežavanje; u razvojnoj verziji meni za simulaciju greške i praznog odgovora.
 - **Backoffice** (Windows i veb), kao administrator Ana:
   - **Taktike:** tabela svih taktika sa filterom po stanju i po tieru, pretragom po naslovu i autoru i bočnim panelom; skrivanje uz obrazloženje i vraćanje u javni prikaz.

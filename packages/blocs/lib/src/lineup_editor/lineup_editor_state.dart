@@ -5,7 +5,7 @@ enum LineupEditorStatus { editing, saving, saved, deleted, failed }
 final class LineupEditorState extends Equatable {
   const LineupEditorState({
     this.id,
-    this.basedOn,
+    this.variants = const [],
     this.name,
     this.startName,
     this.lineup = const Lineup.empty(),
@@ -14,34 +14,33 @@ final class LineupEditorState extends Equatable {
     this.champion,
     this.stars = 1,
     this.items = const [],
+    this.catalog,
     this.status = LineupEditorStatus.editing,
+    this.error,
     this.saved,
   });
 
-  LineupEditorState.edit(PersonalLineup lineup)
+  LineupEditorState.edit(Tactic draft)
     : this(
-        id: lineup.id,
-        basedOn: lineup.basedOn,
-        name: lineup.name.text,
-        startName: lineup.name.text,
-        lineup: lineup.lineup,
-        startLineup: lineup.lineup,
+        id: draft.id,
+        variants: draft.variants,
+        name: draft.title,
+        startName: draft.title,
+        lineup: draft.variants.firstOrNull?.lineup ?? const Lineup.empty(),
+        startLineup: draft.variants.firstOrNull?.lineup ?? const Lineup.empty(),
       );
 
-  LineupEditorState.fromTactic(Tactic tactic, TacticVariant variant, {bool early = false})
+  LineupEditorState.fromTactic(Tactic tactic, TacticVariant variant)
     : this(
-        basedOn: tactic.id,
-        name: _shorten(tactic.title),
-        startName: _shorten(tactic.title),
-        lineup: early ? variant.early : variant.lineup,
-        startLineup: early ? variant.early : variant.lineup,
+        variants: [variant],
+        name: tactic.title,
+        startName: tactic.title,
+        lineup: variant.lineup,
+        startLineup: variant.lineup,
       );
 
-  static String _shorten(String title) =>
-      title.length > LineupName.maxLength ? title.substring(0, LineupName.maxLength).trimRight() : title;
-
-  final LineupId? id;
-  final TacticId? basedOn;
+  final TacticId? id;
+  final List<TacticVariant> variants;
   final String? name;
   final String? startName;
   final Lineup lineup;
@@ -50,13 +49,15 @@ final class LineupEditorState extends Equatable {
   final Champion? champion;
   final int stars;
   final List<Item> items;
+  final Catalog? catalog;
   final LineupEditorStatus status;
-  final PersonalLineup? saved;
+  final DomainError? error;
+  final Tactic? saved;
 
   @override
   List<Object?> get props => [
     id,
-    basedOn,
+    variants,
     name,
     startName,
     lineup,
@@ -65,7 +66,9 @@ final class LineupEditorState extends Equatable {
     champion,
     stars,
     items,
+    catalog,
     status,
+    error,
     saved,
   ];
 
@@ -80,7 +83,7 @@ final class LineupEditorState extends Equatable {
 
   DomainError? get nameError => switch (name) {
     null => null,
-    final name => LineupName.parse(name).errorOrNull,
+    final name => Tactic.parseTitle(name).errorOrNull,
   };
 
   Result<Lineup>? get placed {
@@ -100,7 +103,7 @@ final class LineupEditorState extends Equatable {
     List<Item> items = const [],
   }) => LineupEditorState(
     id: id,
-    basedOn: basedOn,
+    variants: variants,
     name: name,
     startName: startName,
     lineup: lineup,
@@ -109,6 +112,7 @@ final class LineupEditorState extends Equatable {
     champion: champion,
     stars: stars,
     items: items,
+    catalog: catalog,
   );
 
   LineupEditorState copyWith({
@@ -117,11 +121,13 @@ final class LineupEditorState extends Equatable {
     Champion? champion,
     int? stars,
     List<Item>? items,
+    Catalog? catalog,
     LineupEditorStatus? status,
-    PersonalLineup? saved,
+    DomainError? error,
+    Tactic? saved,
   }) => LineupEditorState(
     id: id,
-    basedOn: basedOn,
+    variants: variants,
     name: name ?? this.name,
     startName: startName,
     lineup: lineup ?? this.lineup,
@@ -130,7 +136,9 @@ final class LineupEditorState extends Equatable {
     champion: champion ?? this.champion,
     stars: stars ?? this.stars,
     items: items ?? this.items,
+    catalog: catalog ?? this.catalog,
     status: status ?? this.status,
+    error: error,
     saved: saved ?? this.saved,
   );
 }
