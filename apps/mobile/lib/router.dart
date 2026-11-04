@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'dependencies.dart';
 import 'screens/comps_screen.dart';
 import 'screens/home_shell.dart';
-import 'screens/lineup_editor_screen.dart';
+import 'screens/draft_editor_screen.dart';
 import 'screens/mine_screen.dart';
 import 'screens/tactic_detail_screen.dart';
 
@@ -46,8 +46,8 @@ GoRouter createRouter() {
           final tactic = _tactic(context, query['from']);
           final variant = tactic?.variants.elementAtOrNull(int.tryParse(query['variant'] ?? '') ?? 0);
           return _draftEditor(context, switch ((tactic, variant)) {
-            (final tactic?, final variant?) => LineupEditorState.fromTactic(tactic, variant),
-            _ => const LineupEditorState(),
+            (final tactic?, final variant?) => DraftEditorState.fromTactic(tactic, variant),
+            _ => const DraftEditorState(),
           });
         },
       ),
@@ -55,7 +55,7 @@ GoRouter createRouter() {
         path: '/drafts/:id',
         redirect: (context, state) => _tactic(context, state.pathParameters['id']) == null ? '/mine' : null,
         builder: (context, state) =>
-            _draftEditor(context, LineupEditorState.edit(_tactic(context, state.pathParameters['id'])!)),
+            _draftEditor(context, DraftEditorState.edit(_tactic(context, state.pathParameters['id'])!)),
       ),
     ],
   );
@@ -66,16 +66,16 @@ Tactic? _tactic(BuildContext context, String? id) => switch ((id, context.read<T
   _ => null,
 };
 
-Widget _draftEditor(BuildContext context, LineupEditorState initial) {
+Widget _draftEditor(BuildContext context, DraftEditorState initial) {
   final dependencies = context.read<AppDependencies>();
   return BlocProvider(
-    create: (_) => LineupEditorBloc(
+    create: (_) => DraftEditorBloc(
       saveDraft: dependencies.saveDraft,
       deleteDraft: dependencies.deleteDraft,
       getCatalog: dependencies.getCatalog,
       user: dependencies.user,
       initial: initial,
-    )..add(const LineupEditorStarted()),
-    child: const LineupEditorScreen(),
+    )..add(const DraftEditorStarted()),
+    child: const DraftEditorScreen(),
   );
 }

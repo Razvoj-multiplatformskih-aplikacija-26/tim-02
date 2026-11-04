@@ -1,13 +1,13 @@
-part of 'lineup_editor_bloc.dart';
+part of 'draft_editor_bloc.dart';
 
-enum LineupEditorStatus { editing, saving, saved, deleted, failed }
+enum DraftEditorStatus { editing, saving, saved, deleted, failed }
 
-final class LineupEditorState extends Equatable {
-  const LineupEditorState({
+final class DraftEditorState extends Equatable {
+  const DraftEditorState({
     this.id,
     this.variants = const [],
-    this.name,
-    this.startName,
+    this.title,
+    this.startTitle,
     this.lineup = const Lineup.empty(),
     this.startLineup = const Lineup.empty(),
     this.hex,
@@ -15,34 +15,34 @@ final class LineupEditorState extends Equatable {
     this.stars = 1,
     this.items = const [],
     this.catalog,
-    this.status = LineupEditorStatus.editing,
+    this.status = DraftEditorStatus.editing,
     this.error,
     this.saved,
   });
 
-  LineupEditorState.edit(Tactic draft)
+  DraftEditorState.edit(Tactic draft)
     : this(
         id: draft.id,
         variants: draft.variants,
-        name: draft.title,
-        startName: draft.title,
+        title: draft.title,
+        startTitle: draft.title,
         lineup: draft.variants.firstOrNull?.lineup ?? const Lineup.empty(),
         startLineup: draft.variants.firstOrNull?.lineup ?? const Lineup.empty(),
       );
 
-  LineupEditorState.fromTactic(Tactic tactic, TacticVariant variant)
+  DraftEditorState.fromTactic(Tactic tactic, TacticVariant variant)
     : this(
         variants: [variant],
-        name: tactic.title,
-        startName: tactic.title,
+        title: tactic.title,
+        startTitle: tactic.title,
         lineup: variant.lineup,
         startLineup: variant.lineup,
       );
 
   final TacticId? id;
   final List<TacticVariant> variants;
-  final String? name;
-  final String? startName;
+  final String? title;
+  final String? startTitle;
   final Lineup lineup;
   final Lineup startLineup;
   final HexPosition? hex;
@@ -50,7 +50,7 @@ final class LineupEditorState extends Equatable {
   final int stars;
   final List<Item> items;
   final Catalog? catalog;
-  final LineupEditorStatus status;
+  final DraftEditorStatus status;
   final DomainError? error;
   final Tactic? saved;
 
@@ -58,8 +58,8 @@ final class LineupEditorState extends Equatable {
   List<Object?> get props => [
     id,
     variants,
-    name,
-    startName,
+    title,
+    startTitle,
     lineup,
     startLineup,
     hex,
@@ -74,16 +74,16 @@ final class LineupEditorState extends Equatable {
 
   @override
   String toString() =>
-      'LineupEditorState(${lineup.placements.length} champions, ${items.length} items, ${status.name})';
+      'DraftEditorState(${lineup.placements.length} champions, ${items.length} items, ${status.name})';
 
   bool get dirty =>
-      (name ?? '') != (startName ?? '') ||
+      (title ?? '') != (startTitle ?? '') ||
       lineup.placements.length != startLineup.placements.length ||
       !lineup.placements.every(startLineup.placements.contains);
 
-  DomainError? get nameError => switch (name) {
+  DomainError? get titleError => switch (title) {
     null => null,
-    final name => Tactic.parseTitle(name).errorOrNull,
+    final title => Tactic.parseTitle(title).errorOrNull,
   };
 
   Result<Lineup>? get placed {
@@ -96,16 +96,21 @@ final class LineupEditorState extends Equatable {
     };
   }
 
-  LineupEditorState withUnit({
+  DraftEditorState selecting(HexPosition position) {
+    final unit = lineup.placements.where((p) => p.position == position).firstOrNull?.unit;
+    return withUnit(hex: position, champion: unit?.champion, stars: unit?.stars ?? 1, items: unit?.items ?? const []);
+  }
+
+  DraftEditorState withUnit({
     required HexPosition? hex,
     Champion? champion,
     int stars = 1,
     List<Item> items = const [],
-  }) => LineupEditorState(
+  }) => DraftEditorState(
     id: id,
     variants: variants,
-    name: name,
-    startName: startName,
+    title: title,
+    startTitle: startTitle,
     lineup: lineup,
     startLineup: startLineup,
     hex: hex,
@@ -115,21 +120,21 @@ final class LineupEditorState extends Equatable {
     catalog: catalog,
   );
 
-  LineupEditorState copyWith({
-    String? name,
+  DraftEditorState copyWith({
+    String? title,
     Lineup? lineup,
     Champion? champion,
     int? stars,
     List<Item>? items,
     Catalog? catalog,
-    LineupEditorStatus? status,
+    DraftEditorStatus? status,
     DomainError? error,
     Tactic? saved,
-  }) => LineupEditorState(
+  }) => DraftEditorState(
     id: id,
     variants: variants,
-    name: name ?? this.name,
-    startName: startName,
+    title: title ?? this.title,
+    startTitle: startTitle,
     lineup: lineup ?? this.lineup,
     startLineup: startLineup,
     hex: hex,

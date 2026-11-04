@@ -111,6 +111,11 @@ final class TacticEditorState extends Equatable {
     error: error,
   );
 
+  TacticEditorState selecting(HexPosition position) {
+    final unit = board.placements.where((p) => p.position == position).firstOrNull?.unit;
+    return withUnit(hex: position, champion: unit?.champion, stars: unit?.stars ?? 1, items: unit?.items ?? const []);
+  }
+
   TacticEditorState withUnit({HexPosition? hex, Champion? champion, int stars = 1, List<Item> items = const []}) =>
       TacticEditorState(
         tactic: tactic,

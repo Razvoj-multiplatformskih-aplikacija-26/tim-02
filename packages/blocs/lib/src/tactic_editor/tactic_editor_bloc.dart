@@ -20,17 +20,7 @@ final class TacticEditorBloc extends Bloc<TacticEditorEvent, TacticEditorState> 
     on<TacticDescriptionChanged>((event, emit) => emit(state.copyWith(description: event.text)));
     on<TacticVariantChosen>((event, emit) => emit(state.copyWith(variant: event.index).withUnit()));
     on<TacticPhaseChosen>((event, emit) => emit(state.copyWith(early: event.early).withUnit()));
-    on<TacticHexChosen>((event, emit) {
-      final unit = state.board.placements.where((p) => p.position == event.position).firstOrNull?.unit;
-      emit(
-        state.withUnit(
-          hex: event.position,
-          champion: unit?.champion,
-          stars: unit?.stars ?? 1,
-          items: unit?.items ?? const [],
-        ),
-      );
-    });
+    on<TacticHexChosen>((event, emit) => emit(state.selecting(event.position)));
     on<TacticUnitChanged>(
       (event, emit) => emit(
         state.withUnit(
@@ -68,18 +58,10 @@ final class TacticEditorBloc extends Bloc<TacticEditorEvent, TacticEditorState> 
       final hex = state.hex;
       if (hex != null) emit(state.copyWith(variants: state.withBoard(state.board.remove(hex))).withUnit(hex: hex));
     });
-    on<TacticUnitMoved>((event, emit) {
-      final moved = state.copyWith(variants: state.withBoard(state.board.move(event.from, event.to)));
-      final unit = moved.board.placements.where((p) => p.position == event.to).firstOrNull?.unit;
-      emit(
-        moved.withUnit(
-          hex: event.to,
-          champion: unit?.champion,
-          stars: unit?.stars ?? 1,
-          items: unit?.items ?? const [],
-        ),
-      );
-    });
+    on<TacticUnitMoved>(
+      (event, emit) =>
+          emit(state.copyWith(variants: state.withBoard(state.board.move(event.from, event.to))).selecting(event.to)),
+    );
     on<TacticFlexAdded>((event, emit) {
       if (Unit.parse(event.champion) case Success(value: final unit)) {
         emit(state.copyWith(variants: state.withChosen((variant) => variant.copyWith(flex: [...variant.flex, unit]))));
