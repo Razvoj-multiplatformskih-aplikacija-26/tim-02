@@ -2,6 +2,8 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:ui/ui.dart';
 
+import 'revealed.dart';
+
 class TacticTable extends StatelessWidget {
   const TacticTable({
     super.key,
@@ -76,7 +78,7 @@ class TacticTable extends StatelessWidget {
                   ),
                 ),
               );
-              return selected ? _Revealed(key: ValueKey(tactic.id), child: row) : row;
+              return selected ? Revealed(key: ValueKey(tactic.id), child: row) : row;
             },
           ),
         ),
@@ -108,28 +110,4 @@ class _TableRow extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Revealed extends StatefulWidget {
-  const _Revealed({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  State<_Revealed> createState() => _RevealedState();
-}
-
-class _RevealedState extends State<_Revealed> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Scrollable.ensureVisible(context, alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd);
-      Scrollable.ensureVisible(context, alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.child;
 }

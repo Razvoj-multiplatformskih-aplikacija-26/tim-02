@@ -11,6 +11,7 @@ import '../data/fake_tactics.dart';
 import '../dependencies.dart';
 import '../shortcuts.dart';
 import '../widgets/hide_dialog.dart';
+import '../widgets/tactic_list.dart';
 import '../widgets/tactic_panel.dart';
 import '../widgets/tactic_table.dart';
 import 'tactic_editor_screen.dart';
@@ -204,6 +205,59 @@ class _TacticsScreenState extends State<TacticsScreen> {
     _bloc.add(const TacticsRequested());
   }
 
+  Widget _loaded(TacticsLoaded state, BoxConstraints constraints) {
+    final selected = state.selected;
+    final panel = selected == null
+        ? null
+        : TacticPanel(
+            key: ValueKey(selected.id),
+            tactic: selected,
+            tier: state.tierList.tierOf(selected),
+            variant: widget.variant,
+            early: widget.early,
+            onVariantSelected: (index) => _goTo(selected: selected.id, variant: index, early: widget.early),
+            onEarlySelected: (value) => _goTo(selected: selected.id, variant: widget.variant, early: value),
+            onClose: _goTo,
+            busy: state.isBusy,
+            onHide: state.actionsFor(selected.id).contains(TacticAction.hide) ? _hide : null,
+            onRestore: state.actionsFor(selected.id).contains(TacticAction.restore) ? _restore : null,
+            onEdit: state.canEdit(selected.id) ? _edit : null,
+            onPlace: state.canPlace(selected.id) ? (tier) => _bloc.add(TacticTierChanged(selected.id, tier)) : null,
+          );
+    if (constraints.maxWidth < 840) {
+      return Column(
+        children: [
+          Expanded(
+            child: _focusable(TacticList(tactics: state.visible, selectedId: state.selectedId, onSelect: _open)),
+          ),
+          if (panel != null)
+            SizedBox(
+              height: constraints.maxHeight * 0.6,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                child: panel,
+              ),
+            ),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Expanded(
+          child: _focusable(
+            TacticTable(
+              tactics: state.visible,
+              tierList: state.tierList,
+              selectedId: state.selectedId,
+              onSelect: _open,
+            ),
+          ),
+        ),
+        if (panel != null) ...[const VerticalDivider(width: 1), SizedBox(width: 360, child: panel)],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final fake = context.read<BackofficeDependencies>().fakeTactics;
@@ -322,45 +376,7 @@ class _TacticsScreenState extends State<TacticsScreen> {
                 TacticsLoading() => const LoadingView(),
                 TacticsFailure() => FailureView(onRetry: () => _bloc.add(const TacticsRequested())),
                 TacticsEmpty() => const EmptyView(title: 'Još nema taktika.'),
-                TacticsLoaded() => Row(
-                  children: [
-                    Expanded(
-                      child: _focusable(
-                        TacticTable(
-                          tactics: state.visible,
-                          tierList: state.tierList,
-                          selectedId: state.selectedId,
-                          onSelect: _open,
-                        ),
-                      ),
-                    ),
-                    if (state.selected case final selected?) ...[
-                      const VerticalDivider(width: 1),
-                      SizedBox(
-                        width: 360,
-                        child: TacticPanel(
-                          key: ValueKey(selected.id),
-                          tactic: selected,
-                          tier: state.tierList.tierOf(selected),
-                          variant: widget.variant,
-                          early: widget.early,
-                          onVariantSelected: (index) =>
-                              _goTo(selected: selected.id, variant: index, early: widget.early),
-                          onEarlySelected: (value) =>
-                              _goTo(selected: selected.id, variant: widget.variant, early: value),
-                          onClose: _goTo,
-                          busy: state.isBusy,
-                          onHide: state.actionsFor(selected.id).contains(TacticAction.hide) ? _hide : null,
-                          onRestore: state.actionsFor(selected.id).contains(TacticAction.restore) ? _restore : null,
-                          onEdit: state.canEdit(selected.id) ? _edit : null,
-                          onPlace: state.canPlace(selected.id)
-                              ? (tier) => _bloc.add(TacticTierChanged(selected.id, tier))
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                TacticsLoaded() => LayoutBuilder(builder: (context, constraints) => _loaded(state, constraints)),
               },
             ),
           ),

@@ -174,6 +174,24 @@ void main() {
     expect(outline, findsNothing);
   });
 
+  testWidgets('shows a list with a bottom panel in a narrow window and keeps the selection when widened', (
+    tester,
+  ) async {
+    await pumpBackoffice(tester);
+    tester.view.physicalSize = const Size(700, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(ListTile), findsWidgets);
+
+    await tester.tap(find.text('Draven na nivou 9'));
+    await tester.pumpAndSettle();
+    expect(find.text('Draven na nivou 9'), findsNWidgets(2));
+
+    tester.view.physicalSize = const Size(1280, 800);
+    await tester.pumpAndSettle();
+    expect(find.byType(ListTile), findsNothing);
+    expect(find.text('Draven na nivou 9'), findsNWidgets(2));
+  });
+
   testWidgets('searches the tactics by title or author', (tester) async {
     await pumpBackoffice(tester);
     final search = find.widgetWithText(TextField, 'Naslov ili autor');
