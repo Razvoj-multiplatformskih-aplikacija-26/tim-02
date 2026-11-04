@@ -1,11 +1,11 @@
 import 'package:domain/domain.dart';
 
-import 'ports/lineup_repository.dart';
+import 'ports/catalog_repository.dart';
 
 final class GetCatalog {
-  const GetCatalog({required this.lineups});
+  const GetCatalog({required this.catalog});
 
-  final LineupRepository lineups;
+  final CatalogRepository catalog;
 
-  Future<Catalog> call() => lineups.catalog();
+  Future<Catalog> call() => catalog.catalog();
 }

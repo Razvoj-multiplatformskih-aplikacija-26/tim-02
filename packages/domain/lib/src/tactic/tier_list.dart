@@ -22,6 +22,15 @@ final class TierList extends Equatable {
   final PatchId patch;
   final List<TierPlacement> placements;
 
+  TierList place(TacticId id, Tier? tier) => TierList(
+    patch: patch,
+    placements: [
+      for (final placement in placements)
+        if (placement.tactic != id) placement,
+      if (tier != null) TierPlacement(tactic: id, tier: tier),
+    ],
+  );
+
   Tier? tierOf(Tactic tactic) =>
       tactic.status is Archived ? null : placements.where((p) => p.tactic == tactic.id).firstOrNull?.tier;
 

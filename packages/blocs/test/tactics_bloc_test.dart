@@ -25,6 +25,7 @@ void main() {
     getTactics: GetTactics(tactics: tactics),
     getTierList: GetTierList(tactics: tactics),
     changeStatus: ChangeTacticStatus(tactics: tactics, clock: FixedClock(now)),
+    placeTactic: PlaceTactic(tactics: tactics),
     clock: FixedClock(now),
     user: user,
   );
@@ -73,6 +74,18 @@ void main() {
       await refresh.handled;
     },
     expect: () => [const TacticsLoading(), const TacticsEmpty(), isA<TacticsLoaded>()],
+  );
+
+  blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc shows a saved tactic at once without asking the server again',
+    build: () => blocWith(FakeTactics(tactics: [tactic('t-1', marko, const Draft())])),
+    act: (bloc) async {
+      bloc.add(const TacticsRequested());
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded);
+      bloc.add(TacticSaved(tactic('t-1', marko, const Draft()).copyWith(title: 'Ahri 8')));
+    },
+    skip: 2,
+    expect: () => [isA<TacticsLoaded>().having((s) => s.tactics.single.title, 'title', 'Ahri 8')],
   );
 
   blocTest<TacticsBloc, TacticsState>(
@@ -154,6 +167,31 @@ void main() {
   );
 
   blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc lets an admin move a published tactic to another tier',
+    build: () => blocWith(
+      FakeTactics(
+        tactics: [tactic('t-1', luka, Published(at: now))],
+        tierList: const TierList(
+          patch: PatchId('18.5c'),
+          placements: [TierPlacement(tactic: TacticId('t-1'), tier: Tier.b)],
+        ),
+      ),
+      user: ana,
+    ),
+    act: (bloc) async {
+      bloc.add(const TacticsRequested());
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded);
+      bloc.add(const TacticTierChanged(TacticId('t-1'), Tier.a));
+    },
+    skip: 3,
+    expect: () => [
+      isA<TacticsLoaded>()
+          .having((s) => s.comps[Tier.a]!.single.id, 'tier A', const TacticId('t-1'))
+          .having((s) => s.notice, 'notice', const TacticPlaced(Tier.a)),
+    ],
+  );
+
+  blocTest<TacticsBloc, TacticsState>(
     'TacticsBloc matches the search against the title and the author and keeps it across a reload',
     build: () => blocWith(
       FakeTactics(
@@ -173,5 +211,30 @@ void main() {
       await refresh.handled;
     },
     verify: (bloc) => expect((bloc.state as TacticsLoaded).visible.map((t) => t.id), [const TacticId('t-2')]),
+  );
+
+  blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc leaves only the tactics placed in the chosen tier visible',
+    build: () => blocWith(
+      FakeTactics(
+        tactics: [
+          tactic('t-1', luka, Published(at: now)),
+          tactic('t-2', luka, Published(at: now)),
+        ],
+        tierList: const TierList(
+          patch: PatchId('18.5c'),
+          placements: [TierPlacement(tactic: TacticId('t-1'), tier: Tier.b)],
+        ),
+      ),
+    ),
+    act: (bloc) async {
+      bloc.add(const TacticsRequested());
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded);
+      bloc.add(const TacticsTierFilterChanged(Tier.b));
+    },
+    skip: 2,
+    expect: () => [
+      isA<TacticsLoaded>().having((s) => s.visible.map((t) => t.id), 'visible', [const TacticId('t-1')]),
+    ],
   );
 }

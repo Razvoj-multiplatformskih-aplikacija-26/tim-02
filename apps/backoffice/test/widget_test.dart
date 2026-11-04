@@ -1,5 +1,6 @@
 import 'package:backoffice/app.dart';
 import 'package:backoffice/dependencies.dart';
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -63,6 +64,67 @@ void main() {
     expect(find.text('Sakrij'), findsOneWidget);
   });
 
+  testWidgets('edits the title and a board of a tactic and saves it', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpBackoffice(tester);
+    await tester.tap(find.text('Draven na nivou 9'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uredi'));
+    await tester.pumpAndSettle();
+    expect(find.text('UREDI TAKTIKU'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Naslov'), 'Draven i Ezreal');
+    await tester.tap(find.bySemanticsLabel(RegExp('^Red 1, kolona 1')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(of: find.widgetWithText(DropdownMenu<Champion>, 'Šampion'), matching: find.byType(TextField)),
+      'Ahri',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(MenuItemButton, 'Ahri').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Postavi na tablu'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel(RegExp(r'^Red 1, kolona 1\nAhri')), findsOneWidget);
+    await tester.tap(find.text('Sačuvaj'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Taktika je sačuvana.'), findsOneWidget);
+    expect(find.text('Draven i Ezreal'), findsNWidgets(2));
+    semantics.dispose();
+  });
+
+  testWidgets('asks before throwing away an edited tactic', (tester) async {
+    await pumpBackoffice(tester);
+    await tester.tap(find.text('Draven na nivou 9'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uredi'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Naslov'), 'Draven i Ezreal');
+    await tester.pump();
+
+    await tester.tap(find.text('Odustani'));
+    await tester.pumpAndSettle();
+    expect(find.text('Odbaciti izmene?'), findsOneWidget);
+    await tester.tap(find.text('Odbaci'));
+    await tester.pumpAndSettle();
+    expect(find.text('UREDI TAKTIKU'), findsNothing);
+    expect(find.text('Draven na nivou 9'), findsNWidgets(2));
+  });
+
+  testWidgets('lets the admin move a published tactic to another tier', (tester) async {
+    await pumpBackoffice(tester);
+    await tester.tap(find.text('Draven na nivou 9'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tier: S'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(MenuItemButton, 'A'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Taktika je sada u tieru A.'), findsOneWidget);
+    expect(find.text('Tier: A'), findsOneWidget);
+  });
+
   testWidgets('searches the tactics by title or author', (tester) async {
     await pumpBackoffice(tester);
     final search = find.widgetWithText(TextField, 'Naslov ili autor');
@@ -75,5 +137,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Draven na nivou 9'), findsOneWidget);
     expect(find.text('Solar Blossom'), findsNothing);
+  });
+
+  testWidgets('shows only the tactics of the chosen tier', (tester) async {
+    await pumpBackoffice(tester);
+    await tester.tap(find.text('Svi tierovi'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(MenuItemButton, 'A'));
+    await tester.pumpAndSettle();
+    expect(find.text('Tier: A'), findsOneWidget);
+    expect(find.text('Ahri Spellweaver'), findsOneWidget);
+    expect(find.text('Draven na nivou 9'), findsNothing);
   });
 }

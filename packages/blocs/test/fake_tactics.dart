@@ -5,7 +5,7 @@ const marko = User(id: UserId('u-marko'), name: 'Marko', role: Role.creator);
 const luka = User(id: UserId('u-luka'), name: 'Luka', role: Role.creator);
 const ana = User(id: UserId('u-ana'), name: 'Ana', role: Role.admin);
 
-final class FakeTactics implements TacticRepository {
+final class FakeTactics implements TacticRepository, CatalogRepository {
   FakeTactics({
     List<Tactic> tactics = const [],
     this.tierList = const TierList(patch: PatchId('18.5c'), placements: []),
@@ -13,7 +13,7 @@ final class FakeTactics implements TacticRepository {
   }) : tactics = List.of(tactics);
 
   final List<Tactic> tactics;
-  final TierList tierList;
+  TierList tierList;
   bool failing;
 
   @override
@@ -36,4 +36,10 @@ final class FakeTactics implements TacticRepository {
     tactics[tactics.indexWhere((t) => t.id == tactic.id)] = tactic;
     return tactic;
   }
+
+  @override
+  Future<TierList> saveTierList(TierList tierList) async => this.tierList = tierList;
+
+  @override
+  Future<Catalog> catalog() async => const Catalog(champions: [], items: []);
 }

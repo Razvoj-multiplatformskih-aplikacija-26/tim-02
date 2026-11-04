@@ -38,6 +38,7 @@ final class TacticsLoaded extends TacticsState {
     this.actions = const {},
     this.filter,
     this.search = '',
+    this.tier,
     this.selectedId,
     this.inFlightId,
     this.notice,
@@ -49,18 +50,20 @@ final class TacticsLoaded extends TacticsState {
   final Map<TacticId, Set<TacticAction>> actions;
   final TacticStatusKind? filter;
   final String search;
+  final Tier? tier;
   final TacticId? selectedId;
   final TacticId? inFlightId;
   final TacticsNotice? notice;
 
   @override
-  List<Object?> get props => [user, tactics, tierList, actions, filter, search, selectedId, inFlightId, notice];
+  List<Object?> get props => [user, tactics, tierList, actions, filter, search, tier, selectedId, inFlightId, notice];
 
   @override
   String toString() => [
     'TacticsLoaded(${tactics.length} tactics, patch ${tierList.patch.value}',
     if (filter case final filter?) ', only ${filter.name}',
     if (search.isNotEmpty) ', matching "$search"',
+    if (tier case final tier?) ', in tier ${tier.name}',
     if (selectedId case final id?) ', selected ${id.value}',
     if (inFlightId case final id?) ', in flight ${id.value}',
     if (notice case final notice?) ', ${notice.runtimeType}',
@@ -72,6 +75,7 @@ final class TacticsLoaded extends TacticsState {
     return [
       for (final t in tactics)
         if ((filter == null || t.status.kind == filter) &&
+            (tier == null || tierList.tierOf(t) == tier) &&
             (t.title.toLowerCase().contains(words) || t.authorName.toLowerCase().contains(words)))
           t,
     ];
@@ -92,6 +96,16 @@ final class TacticsLoaded extends TacticsState {
 
   Set<TacticAction> actionsFor(TacticId id) => actions[id] ?? const {};
 
+  bool canEdit(TacticId id) => switch (tactic(id)) {
+    final tactic? => mayEdit(tactic, user),
+    null => false,
+  };
+
+  bool canPlace(TacticId id) => switch (tactic(id)) {
+    final tactic? => mayPlace(tactic, user),
+    null => false,
+  };
+
   TacticsLoaded withFilter(TacticStatusKind? filter) => TacticsLoaded(
     user: user,
     tactics: tactics,
@@ -99,6 +113,7 @@ final class TacticsLoaded extends TacticsState {
     actions: actions,
     filter: filter,
     search: search,
+    tier: tier,
     selectedId: selectedId,
   );
 
@@ -109,7 +124,19 @@ final class TacticsLoaded extends TacticsState {
     actions: actions,
     filter: filter,
     search: search,
+    tier: tier,
     selectedId: id,
+  );
+
+  TacticsLoaded withTier(Tier? tier) => TacticsLoaded(
+    user: user,
+    tactics: tactics,
+    tierList: tierList,
+    actions: actions,
+    filter: filter,
+    search: search,
+    tier: tier,
+    selectedId: selectedId,
   );
 
   TacticsLoaded withSearch(String search) => TacticsLoaded(
@@ -119,6 +146,7 @@ final class TacticsLoaded extends TacticsState {
     actions: actions,
     filter: filter,
     search: search,
+    tier: tier,
     selectedId: selectedId,
   );
 
@@ -129,6 +157,7 @@ final class TacticsLoaded extends TacticsState {
     actions: actions,
     filter: filter,
     search: search,
+    tier: tier,
     selectedId: selectedId,
     inFlightId: id,
   );
@@ -140,6 +169,7 @@ final class TacticsLoaded extends TacticsState {
     actions: actions,
     filter: filter,
     search: search,
+    tier: tier,
     selectedId: selectedId,
     notice: notice,
   );
@@ -160,6 +190,15 @@ final class TacticChanged extends TacticsNotice {
 
   @override
   List<Object?> get props => [action, tactic];
+}
+
+final class TacticPlaced extends TacticsNotice {
+  const TacticPlaced(this.tier);
+
+  final Tier? tier;
+
+  @override
+  List<Object?> get props => [tier];
 }
 
 final class TacticRejected extends TacticsNotice {

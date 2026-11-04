@@ -11,12 +11,14 @@ import '../dependencies.dart';
 import '../widgets/hide_dialog.dart';
 import '../widgets/tactic_panel.dart';
 import '../widgets/tactic_table.dart';
+import 'tactic_editor_screen.dart';
 
 class TacticsScreen extends StatefulWidget {
   const TacticsScreen({
     super.key,
     this.filter,
     this.search = '',
+    this.tier,
     this.selectedId,
     this.variant = 0,
     this.early = false,
@@ -24,6 +26,7 @@ class TacticsScreen extends StatefulWidget {
 
   final TacticStatusKind? filter;
   final String search;
+  final Tier? tier;
   final TacticId? selectedId;
   final int variant;
   final bool early;
@@ -31,6 +34,7 @@ class TacticsScreen extends StatefulWidget {
   static String pathFor(
     TacticStatusKind? filter, {
     String search = '',
+    Tier? tier,
     TacticId? selected,
     int variant = 0,
     bool early = false,
@@ -38,6 +42,7 @@ class TacticsScreen extends StatefulWidget {
     final query = {
       if (filter != null) 'state': filter.name,
       if (search.isNotEmpty) 'q': search,
+      if (tier != null) 'tier': tier.name,
       if (selected != null) 'selected': selected.value,
       if (variant > 0) 'variant': '$variant',
       if (early) 'early': '1',
@@ -70,6 +75,7 @@ class _TacticsScreenState extends State<TacticsScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.filter != widget.filter ||
         oldWidget.search != widget.search ||
+        oldWidget.tier != widget.tier ||
         oldWidget.selectedId != widget.selectedId) {
       _syncWithRoute();
     }
@@ -81,17 +87,26 @@ class _TacticsScreenState extends State<TacticsScreen> {
     if (state is! TacticsLoaded) return;
     if (state.filter != widget.filter) _bloc.add(TacticsFilterChanged(widget.filter));
     if (state.search != widget.search) _bloc.add(TacticsSearchChanged(widget.search));
+    if (state.tier != widget.tier) _bloc.add(TacticsTierFilterChanged(widget.tier));
     if (state.selectedId != widget.selectedId) _bloc.add(TacticSelected(widget.selectedId));
   }
 
   void _goTo({TacticId? selected, int variant = 0, bool early = false}) => context.go(
-    TacticsScreen.pathFor(widget.filter, search: widget.search, selected: selected, variant: variant, early: early),
+    TacticsScreen.pathFor(
+      widget.filter,
+      search: widget.search,
+      tier: widget.tier,
+      selected: selected,
+      variant: variant,
+      early: early,
+    ),
   );
 
   void _showNotice(TacticsNotice notice) {
     final message = switch (notice) {
       TacticChanged(:final action) => action.doneMessage,
       TacticRejected(:final error) => error.message,
+      TacticPlaced(:final tier) => tierChangedMessage(tier),
       TacticRequestFailed() => 'Izmena nije sačuvana.',
     };
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -132,8 +147,29 @@ class _TacticsScreenState extends State<TacticsScreen> {
                     ChoiceChip(
                       label: Text(kind?.label ?? 'Sve'),
                       selected: kind == widget.filter,
-                      onSelected: (_) => context.go(TacticsScreen.pathFor(kind, search: widget.search)),
+                      onSelected: (_) =>
+                          context.go(TacticsScreen.pathFor(kind, search: widget.search, tier: widget.tier)),
                     ),
+                  MenuAnchor(
+                    menuChildren: [
+                      for (final tier in [null, ...Tier.values])
+                        MenuItemButton(
+                          onPressed: () =>
+                              context.go(TacticsScreen.pathFor(widget.filter, search: widget.search, tier: tier)),
+                          child: Text(tier?.label ?? 'Svi tierovi'),
+                        ),
+                    ],
+                    builder: (context, controller, child) => ChoiceChip(
+                      avatar: const Icon(Icons.leaderboard_outlined),
+                      label: Text(switch (widget.tier) {
+                        final tier? => 'Tier: ${tier.label}',
+                        null => 'Svi tierovi',
+                      }),
+                      selected: widget.tier != null,
+                      showCheckmark: false,
+                      onSelected: (_) => controller.isOpen ? controller.close() : controller.open(),
+                    ),
+                  ),
                   SizedBox(
                     width: 260,
                     child: TextField(
@@ -144,8 +180,10 @@ class _TacticsScreenState extends State<TacticsScreen> {
                         prefixIconConstraints: BoxConstraints(minWidth: 40),
                         isDense: true,
                       ),
-                      onChanged: (text) =>
-                          Router.neglect(context, () => context.go(TacticsScreen.pathFor(widget.filter, search: text))),
+                      onChanged: (text) => Router.neglect(
+                        context,
+                        () => context.go(TacticsScreen.pathFor(widget.filter, search: text, tier: widget.tier)),
+                      ),
                     ),
                   ),
                 ],
@@ -169,6 +207,7 @@ class _TacticsScreenState extends State<TacticsScreen> {
                 Expanded(
                   child: TacticTable(
                     tactics: state.visible,
+                    tierList: state.tierList,
                     selectedId: state.selectedId,
                     onSelect: (tactic) => _goTo(selected: tactic.id),
                   ),
@@ -192,6 +231,12 @@ class _TacticsScreenState extends State<TacticsScreen> {
                           : null,
                       onRestore: state.actionsFor(selected.id).contains(TacticAction.restore)
                           ? () => _bloc.add(TacticActionRequested(selected.id, TacticAction.restore))
+                          : null,
+                      onEdit: state.canEdit(selected.id)
+                          ? () => context.push(TacticEditorScreen.pathFor(selected.id))
+                          : null,
+                      onPlace: state.canPlace(selected.id)
+                          ? (tier) => _bloc.add(TacticTierChanged(selected.id, tier))
                           : null,
                     ),
                   ),

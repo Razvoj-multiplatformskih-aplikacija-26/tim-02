@@ -9,6 +9,7 @@ final class FakeTactics implements TacticRepository {
 
   final Duration latency;
   final List<Tactic> _tactics;
+  TierList _tierList = seedTierList;
   int failingRequests = 0;
   int emptyResponses = 0;
 
@@ -33,7 +34,7 @@ final class FakeTactics implements TacticRepository {
   @override
   Future<TierList> currentTierList() async {
     await _roundTrip();
-    return seedTierList;
+    return _tierList;
   }
 
   @override
@@ -47,5 +48,11 @@ final class FakeTactics implements TacticRepository {
     await _roundTrip();
     _tactics[_tactics.indexWhere((t) => t.id == tactic.id)] = tactic;
     return tactic;
+  }
+
+  @override
+  Future<TierList> saveTierList(TierList tierList) async {
+    await _roundTrip();
+    return _tierList = tierList;
   }
 }

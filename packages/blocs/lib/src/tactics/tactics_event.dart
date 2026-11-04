@@ -16,6 +16,12 @@ final class TacticsRefreshed extends TacticsEvent {
   Future<void> get handled => _handled.future;
 }
 
+final class TacticSaved extends TacticsEvent {
+  const TacticSaved(this.tactic);
+
+  final Tactic tactic;
+}
+
 final class TacticsFilterChanged extends TacticsEvent {
   const TacticsFilterChanged(this.filter);
 
@@ -26,6 +32,12 @@ final class TacticsSearchChanged extends TacticsEvent {
   const TacticsSearchChanged(this.search);
 
   final String search;
+}
+
+final class TacticsTierFilterChanged extends TacticsEvent {
+  const TacticsTierFilterChanged(this.tier);
+
+  final Tier? tier;
 }
 
 final class TacticSelected extends TacticsEvent {
@@ -40,6 +52,13 @@ final class TacticActionRequested extends TacticsEvent {
   final TacticId id;
   final TacticAction action;
   final HideReason? reason;
+}
+
+final class TacticTierChanged extends TacticsEvent {
+  const TacticTierChanged(this.id, this.tier);
+
+  final TacticId id;
+  final Tier? tier;
 }
 
 final class TacticsNoticeAcknowledged extends TacticsEvent {

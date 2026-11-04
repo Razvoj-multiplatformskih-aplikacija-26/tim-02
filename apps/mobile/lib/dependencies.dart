@@ -14,8 +14,9 @@ final class AppDependencies {
   }) : getTactics = GetTactics(tactics: tactics),
        getTierList = GetTierList(tactics: tactics),
        changeTacticStatus = ChangeTacticStatus(tactics: tactics, clock: clock),
+       placeTactic = PlaceTactic(tactics: tactics),
        getLineups = GetLineups(lineups: lineups),
-       getCatalog = GetCatalog(lineups: lineups),
+       getCatalog = GetCatalog(catalog: lineups),
        saveLineup = SaveLineup(lineups: lineups, clock: clock),
        deleteLineup = DeleteLineup(lineups: lineups);
 
@@ -35,6 +36,7 @@ final class AppDependencies {
   final GetTactics getTactics;
   final GetTierList getTierList;
   final ChangeTacticStatus changeTacticStatus;
+  final PlaceTactic placeTactic;
   final GetLineups getLineups;
   final GetCatalog getCatalog;
   final SaveLineup saveLineup;

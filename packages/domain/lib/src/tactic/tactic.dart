@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 import '../catalog.dart';
+import '../errors.dart';
 import '../identifiers.dart';
+import '../result.dart';
 import 'tactic_status.dart';
 import 'tactic_variant.dart';
 
@@ -18,6 +20,8 @@ final class Tactic extends Equatable {
     this.variants = const [],
   });
 
+  static const maxTitleLength = 60;
+
   final TacticId id;
   final UserId authorId;
   final String authorName;
@@ -28,18 +32,30 @@ final class Tactic extends Equatable {
   final DateTime updatedAt;
   final List<TacticVariant> variants;
 
+  static Result<String> parseTitle(String input) {
+    final title = input.trim();
+    if (title.isEmpty || title.length > maxTitleLength) return Failure(InvalidTacticTitle(title.length));
+    return Success(title);
+  }
+
   @override
   List<Object?> get props => [id, authorId, authorName, title, description, carry, status, updatedAt, variants];
 
-  Tactic copyWith({TacticStatus? status, DateTime? updatedAt}) => Tactic(
+  Tactic copyWith({
+    String? title,
+    String? description,
+    TacticStatus? status,
+    DateTime? updatedAt,
+    List<TacticVariant>? variants,
+  }) => Tactic(
     id: id,
     authorId: authorId,
     authorName: authorName,
-    title: title,
-    description: description,
+    title: title ?? this.title,
+    description: description ?? this.description,
     carry: carry,
     status: status ?? this.status,
     updatedAt: updatedAt ?? this.updatedAt,
-    variants: variants,
+    variants: variants ?? this.variants,
   );
 }

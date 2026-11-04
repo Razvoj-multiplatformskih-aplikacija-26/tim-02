@@ -181,10 +181,11 @@ class _VariantView extends StatelessWidget {
             ],
           ),
         ),
-        _Part(
-          label: 'Savet',
-          child: Text(variant.tip, style: theme.textTheme.bodyMedium),
-        ),
+        if (variant.tip.trim().isNotEmpty)
+          _Part(
+            label: 'Savet',
+            child: Text(variant.tip, style: theme.textTheme.bodyMedium),
+          ),
         for (final MapEntry(key: stage, value: tip) in variant.stageTips.entries)
           _Part(
             label: 'Faza $stage',

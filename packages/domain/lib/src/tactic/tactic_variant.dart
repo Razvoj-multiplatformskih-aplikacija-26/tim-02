@@ -32,4 +32,23 @@ final class TacticVariant extends Equatable {
 
   @override
   List<Object?> get props => [name, playstyle, difficulty, early, lineup, flex, itemPriority, tip, stageTips];
+
+  TacticVariant copyWith({
+    Lineup? early,
+    Lineup? lineup,
+    List<Unit>? flex,
+    List<Item>? itemPriority,
+    String? tip,
+    Map<int, String>? stageTips,
+  }) => TacticVariant(
+    name: name,
+    playstyle: playstyle,
+    difficulty: difficulty,
+    early: early ?? this.early,
+    lineup: lineup ?? this.lineup,
+    flex: flex ?? this.flex,
+    itemPriority: itemPriority ?? this.itemPriority,
+    tip: tip ?? this.tip,
+    stageTips: stageTips ?? this.stageTips,
+  );
 }

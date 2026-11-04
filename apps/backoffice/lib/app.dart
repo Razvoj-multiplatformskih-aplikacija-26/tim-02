@@ -38,6 +38,7 @@ class _BackofficeAppState extends State<BackofficeApp> {
           getTactics: dependencies.getTactics,
           getTierList: dependencies.getTierList,
           changeStatus: dependencies.changeTacticStatus,
+          placeTactic: dependencies.placeTactic,
           clock: dependencies.clock,
           user: dependencies.user,
         )..add(const TacticsRequested()),

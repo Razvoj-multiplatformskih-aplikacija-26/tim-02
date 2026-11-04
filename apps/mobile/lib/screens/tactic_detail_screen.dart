@@ -24,6 +24,7 @@ class TacticDetailScreen extends StatelessWidget {
     final message = switch (notice) {
       TacticChanged(:final action) => action.doneMessage,
       TacticRejected(:final error) => error.message,
+      TacticPlaced(:final tier) => tierChangedMessage(tier),
       TacticRequestFailed() => 'Izmena nije sačuvana.',
     };
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));

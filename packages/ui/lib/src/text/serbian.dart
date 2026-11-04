@@ -17,6 +17,11 @@ extension TierLabel on Tier {
   };
 }
 
+String tierChangedMessage(Tier? tier) => switch (tier) {
+  final tier? => 'Taktika je sada u tieru ${tier.label}.',
+  null => 'Taktika je skinuta sa liste.',
+};
+
 extension TacticStatusKindLabel on TacticStatusKind {
   String get label => switch (this) {
     TacticStatusKind.draft => 'Nacrti',

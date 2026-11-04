@@ -14,6 +14,8 @@ class TacticPanel extends StatelessWidget {
     required this.onClose,
     this.onHide,
     this.onRestore,
+    this.onEdit,
+    this.onPlace,
     this.busy = false,
   });
 
@@ -26,6 +28,8 @@ class TacticPanel extends StatelessWidget {
   final VoidCallback onClose;
   final VoidCallback? onHide;
   final VoidCallback? onRestore;
+  final VoidCallback? onEdit;
+  final ValueChanged<Tier?>? onPlace;
   final bool busy;
 
   @override
@@ -38,23 +42,47 @@ class TacticPanel extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: switch ((onHide, onRestore)) {
-                      (final hide?, _) => OutlinedButton.icon(
-                        onPressed: busy ? null : hide,
-                        icon: const Icon(Icons.visibility_off_outlined),
-                        label: Text(TacticAction.hide.label),
-                      ),
-                      (_, final restore?) => FilledButton.icon(
-                        onPressed: busy ? null : restore,
-                        icon: const Icon(Icons.visibility_outlined),
-                        label: Text(TacticAction.restore.label),
-                      ),
-                      _ => null,
-                    },
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (onHide case final hide?)
+                        OutlinedButton.icon(
+                          onPressed: busy ? null : hide,
+                          icon: const Icon(Icons.visibility_off_outlined),
+                          label: Text(TacticAction.hide.label),
+                        ),
+                      if (onRestore case final restore?)
+                        FilledButton.icon(
+                          onPressed: busy ? null : restore,
+                          icon: const Icon(Icons.visibility_outlined),
+                          label: Text(TacticAction.restore.label),
+                        ),
+                      if (onEdit case final edit?)
+                        OutlinedButton.icon(
+                          onPressed: busy ? null : edit,
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('Uredi'),
+                        ),
+                      if (onPlace case final place?)
+                        MenuAnchor(
+                          menuChildren: [
+                            for (final option in [...Tier.values, null])
+                              MenuItemButton(
+                                onPressed: option == tier ? null : () => place(option),
+                                child: Text(option?.label ?? 'Bez tiera'),
+                              ),
+                          ],
+                          builder: (context, controller, child) => OutlinedButton.icon(
+                            onPressed: busy ? null : () => controller.isOpen ? controller.close() : controller.open(),
+                            icon: const Icon(Icons.leaderboard_outlined),
+                            label: Text('Tier: ${tier?.label ?? 'nema'}'),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 IconButton(tooltip: 'Zatvori', onPressed: onClose, icon: const Icon(Icons.close)),

@@ -8,4 +8,6 @@ abstract interface class TacticRepository {
   Future<Tactic?> find(TacticId id);
 
   Future<Tactic> save(Tactic tactic);
+
+  Future<TierList> saveTierList(TierList tierList);
 }

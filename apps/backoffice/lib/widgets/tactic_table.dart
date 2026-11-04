@@ -3,9 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:ui/ui.dart';
 
 class TacticTable extends StatelessWidget {
-  const TacticTable({super.key, required this.tactics, required this.selectedId, required this.onSelect});
+  const TacticTable({
+    super.key,
+    required this.tactics,
+    required this.tierList,
+    required this.selectedId,
+    required this.onSelect,
+  });
 
   final List<Tactic> tactics;
+  final TierList tierList;
   final TacticId? selectedId;
   final ValueChanged<Tactic> onSelect;
 
@@ -18,7 +25,9 @@ class TacticTable extends StatelessWidget {
       children: [
         DefaultTextStyle.merge(
           style: theme.textTheme.labelLarge?.copyWith(color: scheme.onSurfaceVariant),
-          child: const _TableRow(cells: [Text('Naslov'), Text('Autor'), Text('Stanje'), Text('Izmenjeno')]),
+          child: const _TableRow(
+            cells: [Text('Naslov'), Text('Autor'), Text('Stanje'), Text('Tier'), Text('Izmenjeno')],
+          ),
         ),
         const Divider(height: 1),
         Expanded(
@@ -58,6 +67,7 @@ class TacticTable extends StatelessWidget {
                           ),
                           Text(tactic.authorName),
                           StatusBadge(status: tactic.status),
+                          Text(tierList.tierOf(tactic)?.label ?? '—'),
                           Text(formatDate(tactic.updatedAt)),
                         ],
                       ),
@@ -76,7 +86,7 @@ class TacticTable extends StatelessWidget {
 class _TableRow extends StatelessWidget {
   const _TableRow({required this.cells});
 
-  static const _flex = [5, 2, 2, 2];
+  static const _flex = [5, 2, 2, 2, 2];
 
   final List<Widget> cells;
 

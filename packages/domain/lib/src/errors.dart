@@ -49,6 +49,27 @@ final class HiddenByAdmin extends DomainError {
   const HiddenByAdmin();
 }
 
+final class TacticArchived extends DomainError {
+  const TacticArchived();
+}
+
+final class EmptyBoard extends DomainError {
+  const EmptyBoard();
+}
+
+final class InvalidTacticTitle extends DomainError {
+  const InvalidTacticTitle(this.length);
+
+  final int length;
+
+  @override
+  List<Object?> get props => [length];
+}
+
+final class NotPlaceable extends DomainError {
+  const NotPlaceable();
+}
+
 final class InvalidTransition extends DomainError {
   const InvalidTransition({required this.from, required this.to});
 
