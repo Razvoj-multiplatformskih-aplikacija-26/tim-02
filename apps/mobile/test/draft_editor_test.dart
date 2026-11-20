@@ -1,8 +1,8 @@
+import 'package:demo_data/demo_data.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:mobile/data/catalog.dart';
 import 'package:ui/ui.dart';
 
 import 'support.dart';

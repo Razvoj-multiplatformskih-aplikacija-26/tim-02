@@ -10,6 +10,8 @@ resolution: workspace
 dependencies:
   blocs:
     path: ../../packages/blocs
+  demo_data:
+    path: ../../packages/demo_data
   domain:
     path: ../../packages/domain
   flutter:

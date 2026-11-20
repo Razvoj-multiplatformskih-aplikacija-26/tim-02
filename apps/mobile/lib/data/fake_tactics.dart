@@ -1,8 +1,6 @@
+import 'package:demo_data/demo_data.dart';
 import 'package:domain/domain.dart';
 import 'package:use_cases/use_cases.dart';
-
-import 'catalog.dart';
-import 'seed.dart';
 
 final class FakeTactics implements TacticRepository, CatalogRepository {
   FakeTactics({required Clock clock, this.latency = const Duration(milliseconds: 700)})

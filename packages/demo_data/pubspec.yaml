@@ -1,0 +1,15 @@
+name: demo_data
+description: TFT Insights demo tactics, tier list and catalog, shared by the fake repositories and the server seed.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+
+dependencies:
+  domain:
+    path: ../domain
+
+dev_dependencies:
+  test: 1.31.1

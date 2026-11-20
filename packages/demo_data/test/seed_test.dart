@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile/data/seed.dart';
+import 'package:demo_data/demo_data.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('gives every seeded tactic a variant with an early and a final board', () {

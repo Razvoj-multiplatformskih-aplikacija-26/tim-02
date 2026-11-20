@@ -9,6 +9,7 @@ workspace:
   - apps/mobile
   - apps/backoffice
   - packages/domain
+  - packages/demo_data
   - packages/use_cases
   - packages/blocs
   - packages/ui
