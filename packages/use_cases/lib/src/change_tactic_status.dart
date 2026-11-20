@@ -22,7 +22,7 @@ final class ChangeTacticStatus {
       (TacticAction.archive, _) => archiveTactic(tactic, by: by, now: now),
       (TacticAction.publish, _) => publishTactic(tactic, by: by, now: now),
       (TacticAction.hide, final reason?) => hideTactic(tactic, by: by, reason: reason, now: now),
-      (TacticAction.hide, null) => const Failure<Tactic>(HideReasonTooShort(0)),
+      (TacticAction.hide, null) => const Failure<Tactic>(HideReasonTooShort(0, min: HideReason.minLength)),
       (TacticAction.restore, _) => restoreTactic(tactic, by: by, now: now),
     };
     return switch (result) {

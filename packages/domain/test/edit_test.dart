@@ -52,8 +52,14 @@ void main() {
     });
 
     test('needs a title of 1 to ${Tactic.maxTitleLength} characters', () {
-      expect(edit(tactic('t-1', const Draft()), marko, title: '   '), const Failure<Tactic>(InvalidTacticTitle(0)));
-      expect(edit(tactic('t-1', const Draft()), marko, title: 'a' * 61), const Failure<Tactic>(InvalidTacticTitle(61)));
+      expect(
+        edit(tactic('t-1', const Draft()), marko, title: '   '),
+        const Failure<Tactic>(InvalidTacticTitle(0, max: 60)),
+      );
+      expect(
+        edit(tactic('t-1', const Draft()), marko, title: 'a' * 61),
+        const Failure<Tactic>(InvalidTacticTitle(61, max: 60)),
+      );
     });
 
     test('needs champions on the final board of every variant', () {
@@ -83,7 +89,7 @@ void main() {
     });
 
     test('needs a title and champions on the final board', () {
-      expect(draft(title: ''), const Failure<Tactic>(InvalidTacticTitle(0)));
+      expect(draft(title: ''), const Failure<Tactic>(InvalidTacticTitle(0, max: 60)));
       expect(draft(variants: [variant(const Lineup.empty())]), const Failure<Tactic>(EmptyBoard()));
     });
   });

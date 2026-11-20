@@ -12,7 +12,7 @@ final class HideReason extends Equatable {
 
   static Result<HideReason> parse(String input) {
     final text = input.trim();
-    if (text.length < minLength) return Failure(HideReasonTooShort(text.length));
+    if (text.length < minLength) return Failure(HideReasonTooShort(text.length, min: minLength));
     return Success(HideReason._(text));
   }
 

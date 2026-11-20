@@ -8,11 +8,11 @@ void main() {
     });
 
     test('rejects a reason of 9 characters', () {
-      expect(HideReason.parse('č' * 9), const Failure<HideReason>(HideReasonTooShort(9)));
+      expect(HideReason.parse('č' * 9), const Failure<HideReason>(HideReasonTooShort(9, min: 10)));
     });
 
     test('ignores spaces around the reason', () {
-      expect(HideReason.parse('  kratko  '), const Failure<HideReason>(HideReasonTooShort(6)));
+      expect(HideReason.parse('  kratko  '), const Failure<HideReason>(HideReasonTooShort(6, min: 10)));
     });
   });
 }

@@ -11,12 +11,13 @@ sealed class DomainError extends Equatable {
 }
 
 final class HideReasonTooShort extends DomainError {
-  const HideReasonTooShort(this.length);
+  const HideReasonTooShort(this.length, {required this.min});
 
   final int length;
+  final int min;
 
   @override
-  List<Object?> get props => [length];
+  List<Object?> get props => [length, min];
 }
 
 final class InvalidPosition extends DomainError {
@@ -24,12 +25,13 @@ final class InvalidPosition extends DomainError {
 }
 
 final class TooManyItems extends DomainError {
-  const TooManyItems(this.count);
+  const TooManyItems(this.count, {required this.max});
 
   final int count;
+  final int max;
 
   @override
-  List<Object?> get props => [count];
+  List<Object?> get props => [count, max];
 }
 
 final class HexOccupied extends DomainError {
@@ -58,12 +60,13 @@ final class EmptyBoard extends DomainError {
 }
 
 final class InvalidTacticTitle extends DomainError {
-  const InvalidTacticTitle(this.length);
+  const InvalidTacticTitle(this.length, {required this.max});
 
   final int length;
+  final int max;
 
   @override
-  List<Object?> get props => [length];
+  List<Object?> get props => [length, max];
 }
 
 final class NotPlaceable extends DomainError {

@@ -28,7 +28,7 @@ void main() {
     });
 
     test('rejects a fourth item', () {
-      expect(Unit.parse(ahri, items: items), const Failure<Unit>(TooManyItems(4)));
+      expect(Unit.parse(ahri, items: items), const Failure<Unit>(TooManyItems(4, max: 3)));
     });
   });
 

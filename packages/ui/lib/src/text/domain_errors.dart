@@ -2,11 +2,11 @@ import 'package:domain/domain.dart';
 
 extension DomainErrorMessage on DomainError {
   String get message => switch (this) {
-    HideReasonTooShort() => 'Obrazloženje mora imati bar ${HideReason.minLength} znakova.',
+    HideReasonTooShort(:final min) => 'Obrazloženje mora imati bar $min znakova.',
     InvalidPosition() => 'Polje ne postoji na tabli.',
-    TooManyItems() => 'Šampion može nositi najviše ${Unit.maxItems} predmeta.',
+    TooManyItems(:final max) => 'Šampion može nositi najviše $max predmeta.',
     HexOccupied() => 'Na ovom polju već stoji šampion.',
-    InvalidTacticTitle() => 'Naslov mora imati od 1 do ${Tactic.maxTitleLength} znakova.',
+    InvalidTacticTitle(:final max) => 'Naslov mora imati od 1 do $max znakova.',
     TacticArchived() => 'Arhivirana taktika ne može da se menja.',
     EmptyBoard() => 'Svaka varijanta mora imati šampione na tabli za kasnu igru.',
     NotPlaceable() => 'Na listu može samo objavljena taktika.',

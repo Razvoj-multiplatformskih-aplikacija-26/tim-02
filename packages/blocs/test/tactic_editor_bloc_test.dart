@@ -69,7 +69,7 @@ void main() {
     verify: (bloc) {
       expect(bloc.state.champion, ahri);
       expect(bloc.state.stars, 2);
-      expect(bloc.state.placed, const Failure<Lineup>(TooManyItems(4)));
+      expect(bloc.state.placed, const Failure<Lineup>(TooManyItems(4, max: 3)));
     },
   );
 
@@ -105,8 +105,8 @@ void main() {
       ..add(const TacticTitleChanged(' '))
       ..add(const TacticEditorSubmitted()),
     verify: (bloc) {
-      expect(bloc.state.titleError, const InvalidTacticTitle(0));
-      expect(bloc.state.error, const InvalidTacticTitle(0));
+      expect(bloc.state.titleError, const InvalidTacticTitle(0, max: 60));
+      expect(bloc.state.error, const InvalidTacticTitle(0, max: 60));
       expect(source.tactics.single.title, 'Ahri');
     },
   );

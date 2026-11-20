@@ -34,7 +34,9 @@ final class Tactic extends Equatable {
 
   static Result<String> parseTitle(String input) {
     final title = input.trim();
-    if (title.isEmpty || title.length > maxTitleLength) return Failure(InvalidTacticTitle(title.length));
+    if (title.isEmpty || title.length > maxTitleLength) {
+      return Failure(InvalidTacticTitle(title.length, max: maxTitleLength));
+    }
     return Success(title);
   }
 

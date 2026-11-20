@@ -32,7 +32,7 @@ final class Unit extends Equatable {
   final List<Item> items;
 
   static Result<Unit> parse(Champion champion, {int stars = 1, List<Item> items = const []}) {
-    if (items.length > maxItems) return Failure(TooManyItems(items.length));
+    if (items.length > maxItems) return Failure(TooManyItems(items.length, max: maxItems));
     return Success(Unit._(champion, stars, List.unmodifiable(items)));
   }
 

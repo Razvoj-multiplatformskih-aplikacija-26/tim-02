@@ -116,7 +116,7 @@ Result<TierList> placeTactic(TierList tierList, Tactic tactic, {required Tier? t
 
 bool mayPlace(Tactic tactic, User user) => AccessPolicy.canModerate(user) && tactic.status is Published;
 
-final _anyReason = HideReason.parse('Provera dozvole').valueOrNull!;
+final _anyReason = HideReason.parse('x' * HideReason.minLength).valueOrNull!;
 
 Set<TacticAction> allowedActions(Tactic tactic, User user, {required DateTime now}) => {
   if (archiveTactic(tactic, by: user, now: now).isSuccess) TacticAction.archive,
