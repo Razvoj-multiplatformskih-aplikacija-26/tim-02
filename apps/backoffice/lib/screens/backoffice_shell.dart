@@ -1,5 +1,9 @@
+import 'package:blocs/blocs.dart';
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ui/ui.dart';
 
 class BackofficeShell extends StatelessWidget {
   const BackofficeShell({super.key, required this.shell});
@@ -15,6 +19,14 @@ class BackofficeShell extends StatelessWidget {
             selectedIndex: shell.currentIndex,
             onDestinationSelected: (index) => shell.goBranch(index, initialLocation: index == shell.currentIndex),
             labelType: NavigationRailLabelType.all,
+            trailingAtBottom: true,
+            trailing: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: AccountMenu(
+                user: context.read<User>(),
+                onLogOut: () => context.read<SessionBloc>().add(const SessionLogOutRequested()),
+              ),
+            ),
             destinations: const [
               NavigationRailDestination(
                 icon: Icon(Icons.table_rows_outlined),

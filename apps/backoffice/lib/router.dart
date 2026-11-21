@@ -52,7 +52,7 @@ GoRouter createRouter() {
             create: (_) => TacticEditorBloc(
               editTactic: dependencies.editTactic,
               getCatalog: dependencies.getCatalog,
-              user: dependencies.user,
+              user: context.read<User>(),
               tactic: loaded.tactic(TacticId(state.pathParameters['id']!))!,
             )..add(const TacticEditorStarted()),
             child: const TacticEditorScreen(),

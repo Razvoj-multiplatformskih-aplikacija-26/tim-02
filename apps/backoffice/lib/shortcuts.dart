@@ -26,9 +26,14 @@ class ClearSelectionIntent extends Intent {
   const ClearSelectionIntent();
 }
 
+class RefreshIntent extends Intent {
+  const RefreshIntent();
+}
+
 Map<ShortcutActivator, Intent> tacticShortcuts() => {
   const SingleActivator(LogicalKeyboardKey.keyH): const HideIntent(),
   const SingleActivator(LogicalKeyboardKey.keyR): const RestoreIntent(),
   const SingleActivator(LogicalKeyboardKey.keyE): const EditIntent(),
   const SingleActivator(LogicalKeyboardKey.escape): const ClearSelectionIntent(),
+  const SingleActivator(LogicalKeyboardKey.f5): const RefreshIntent(),
 };

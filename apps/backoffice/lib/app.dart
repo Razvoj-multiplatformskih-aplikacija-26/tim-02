@@ -1,4 +1,5 @@
 import 'package:blocs/blocs.dart';
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,6 +21,60 @@ class BackofficeApp extends StatefulWidget {
 }
 
 class _BackofficeAppState extends State<BackofficeApp> {
+  late final SessionBloc _session = SessionBloc(
+    restoreSession: widget.dependencies.restoreSession,
+    logOut: widget.dependencies.logOut,
+    admits: AccessPolicy.canUseBackoffice,
+    expirations: widget.dependencies.sessionExpirations,
+  )..add(const SessionRestoreRequested());
+
+  @override
+  void dispose() {
+    _session.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dependencies = widget.dependencies;
+    return RepositoryProvider.value(
+      value: dependencies,
+      child: BlocProvider.value(
+        value: _session,
+        child: BlocBuilder<SessionBloc, SessionState>(
+          builder: (context, session) => switch (session) {
+            SessionUnknown() => _material(
+              key: const ValueKey('session-unknown'),
+              home: const Scaffold(body: LoadingView()),
+            ),
+            SignedOut(:final reason) => _material(
+              key: ValueKey('signed-out ${reason?.name}'),
+              home: LoginScreen(
+                logIn: dependencies.logIn,
+                reason: reason,
+                roleNotAllowedMessage: 'Backoffice je za kreatore i administratore.',
+                onSignedIn: (user) => _session.add(SessionStarted(user)),
+              ),
+            ),
+            SignedIn(:final user) => _SignedInApp(key: ValueKey(user.id), user: user, dependencies: dependencies),
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _SignedInApp extends StatefulWidget {
+  const _SignedInApp({super.key, required this.user, required this.dependencies});
+
+  final User user;
+  final BackofficeDependencies dependencies;
+
+  @override
+  State<_SignedInApp> createState() => _SignedInAppState();
+}
+
+class _SignedInAppState extends State<_SignedInApp> {
   late final GoRouter _router = createRouter();
 
   @override
@@ -32,7 +87,7 @@ class _BackofficeAppState extends State<BackofficeApp> {
   Widget build(BuildContext context) {
     final dependencies = widget.dependencies;
     return RepositoryProvider.value(
-      value: dependencies,
+      value: widget.user,
       child: BlocProvider(
         create: (_) => TacticsBloc(
           getTactics: dependencies.getTactics,
@@ -40,23 +95,42 @@ class _BackofficeAppState extends State<BackofficeApp> {
           changeStatus: dependencies.changeTacticStatus,
           placeTactic: dependencies.placeTactic,
           clock: dependencies.clock,
-          user: dependencies.user,
+          user: widget.user,
         )..add(const TacticsRequested()),
-        child: MaterialApp.router(
-          title: 'TFT Insights Backoffice',
-          theme: TftTheme.light(),
-          darkTheme: TftTheme.dark(),
-          themeMode: ThemeMode.system,
-          locale: BackofficeApp.locale,
-          supportedLocales: const [BackofficeApp.locale],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          routerConfig: _router,
-        ),
+        child: _material(router: _router),
       ),
     );
   }
+}
+
+Widget _material({Key? key, Widget? home, GoRouter? router}) {
+  const delegates = [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ];
+  if (router != null) {
+    return MaterialApp.router(
+      key: key,
+      title: 'TFT Insights Backoffice',
+      theme: TftTheme.light(),
+      darkTheme: TftTheme.dark(),
+      themeMode: ThemeMode.system,
+      locale: BackofficeApp.locale,
+      supportedLocales: const [BackofficeApp.locale],
+      localizationsDelegates: delegates,
+      routerConfig: router,
+    );
+  }
+  return MaterialApp(
+    key: key,
+    title: 'TFT Insights Backoffice',
+    theme: TftTheme.light(),
+    darkTheme: TftTheme.dark(),
+    themeMode: ThemeMode.system,
+    locale: BackofficeApp.locale,
+    supportedLocales: const [BackofficeApp.locale],
+    localizationsDelegates: delegates,
+    home: home,
+  );
 }

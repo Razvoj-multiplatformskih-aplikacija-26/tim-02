@@ -200,6 +200,8 @@ class _TacticsScreenState extends State<TacticsScreen> {
     _bloc.add(const TacticsNoticeAcknowledged());
   }
 
+  void _refresh() => _bloc.add(TacticsRefreshed());
+
   void _simulateOutage(FakeTactics fake) {
     fake.failingRequests = 1;
     _bloc.add(const TacticsRequested());
@@ -275,6 +277,7 @@ class _TacticsScreenState extends State<TacticsScreen> {
             onInvoke: (_) => _restore(),
           ),
           EditIntent: GuardedCallbackAction<EditIntent>(enabled: _editable, onInvoke: (_) => _edit()),
+          RefreshIntent: CallbackAction<RefreshIntent>(onInvoke: (_) => _refresh()),
           ClearSelectionIntent: CallbackAction<ClearSelectionIntent>(
             onInvoke: (_) {
               _bloc.add(const TacticSelected(null));
@@ -293,6 +296,7 @@ class _TacticsScreenState extends State<TacticsScreen> {
                   onPressed: () => _simulateOutage(fake),
                   icon: const Icon(Icons.cloud_off_outlined),
                 ),
+              IconButton(tooltip: 'Osveži (F5)', onPressed: _refresh, icon: const Icon(Icons.refresh)),
               const SizedBox(width: 8),
             ],
             bottom: PreferredSize(
