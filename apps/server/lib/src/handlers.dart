@@ -5,6 +5,7 @@ import 'package:use_cases/use_cases.dart';
 
 import 'http.dart';
 import 'postgres_tactics.dart';
+import 'sessions.dart';
 
 final class TacticHandlers {
   TacticHandlers({required PostgresTactics tactics})
@@ -23,11 +24,13 @@ final class TacticHandlers {
   Future<Response> tierList(Request request) async => json(200, (await _getTierList()).toDto().toJson());
 
   Future<Response> list(Request request) async =>
-      json(200, [for (final tactic in await _getTactics(null)) tactic.toDto().toJson()]);
+      json(200, [for (final tactic in await _getTactics(_actor(request))) tactic.toDto().toJson()]);
 
   Future<Response> find(Request request) async {
     final tactic = await _tactics.find(TacticId(request.rawPathParameters[#id]!));
-    if (tactic == null || visibleTactics([tactic], null).isEmpty) return problem(const NotFound());
+    if (tactic == null || visibleTactics([tactic], _actor(request)).isEmpty) return problem(const NotFound());
     return json(200, tactic.toDto().toJson());
   }
+
+  User? _actor(Request request) => currentSession[request]?.user;
 }

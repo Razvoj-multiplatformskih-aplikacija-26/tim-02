@@ -26,6 +26,12 @@ void main() {
     expect(CatalogDto.fromJson(throughJson(seedCatalog.toDto().toJson())).toDomain(), seedCatalog);
   });
 
+  test('carries every seeded user to the contract and back', () {
+    for (final user in seedUsers) {
+      expect(UserDto.fromJson(throughJson(user.toDto().toJson())).toDomain(), user);
+    }
+  });
+
   test('builds a board only through the rules of the domain', () {
     final items = [bfSword, bfSword, bfSword, bloodthirster];
 

@@ -73,6 +73,18 @@ void main() {
     expect(TacticDto.fromJson(json).toJson(), tactic.toJson());
   });
 
+  test('carries a login and the session it opens through JSON', () {
+    const login = LoginDto(username: 'marko', password: 'tft-demo', cookie: true);
+    final session = SessionDto(
+      user: const UserDto(id: 'u-marko', name: 'Marko', role: 'creator'),
+      expiresAt: DateTime.utc(2026, 11, 21, 9),
+      token: 'header.payload.signature',
+    );
+
+    expect(LoginDto.fromJson(throughJson(login.toJson())).toJson(), login.toJson());
+    expect(SessionDto.fromJson(throughJson(session.toJson())).toJson(), session.toJson());
+  });
+
   test('refuses an instant without a time zone', () {
     final json = throughJson({...tactic.toJson(), 'updatedAt': '2026-11-20T18:00:00'});
 
