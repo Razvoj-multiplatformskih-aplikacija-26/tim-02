@@ -284,10 +284,14 @@ void main() {
           tactic('t-1', luka, Published(at: now)),
           tactic('t-2', luka, Published(at: now)),
           tactic('t-3', luka, Published(at: now)),
+          tactic('t-4', luka, Published(at: now)),
         ],
         tierList: const TierList(
           patch: PatchId('18.5c'),
-          placements: [TierPlacement(tactic: TacticId('t-1'), tier: Tier.s)],
+          placements: [
+            TierPlacement(tactic: TacticId('t-1'), tier: Tier.s),
+            TierPlacement(tactic: TacticId('t-2'), tier: Tier.s),
+          ],
         ),
       ),
       user: ana,
@@ -295,15 +299,15 @@ void main() {
     act: (bloc) async {
       bloc.add(const TacticsRequested());
       await bloc.stream.firstWhere((s) => s is TacticsLoaded);
-      source.tierList = source.tierList.place(const TacticId('t-2'), Tier.s);
-      bloc.add(const TacticTierChanged(TacticId('t-3'), Tier.s));
+      source.tierList = source.tierList.place(const TacticId('t-3'), Tier.s);
+      bloc.add(const TacticTierChanged(TacticId('t-4'), Tier.s));
     },
     skip: 3,
     expect: () => [
-      isA<TacticsLoaded>().having((s) => s.notice, 'notice', const TacticRejected(TierFull(Tier.s, max: 2))).having(
+      isA<TacticsLoaded>().having((s) => s.notice, 'notice', const TacticRejected(TierFull(Tier.s, max: 3))).having(
         (s) => s.comps[Tier.s]!.map((t) => t.id),
         'S',
-        [const TacticId('t-1'), const TacticId('t-2')],
+        [const TacticId('t-1'), const TacticId('t-2'), const TacticId('t-3')],
       ),
     ],
   );

@@ -42,12 +42,12 @@ void main() {
       expect(request.url.path, ApiPaths.tierPlacement('t-05'));
       expect(request.headers['Authorization'], 'Bearer token-of-ana');
       expect(jsonDecode(request.body), {'tier': 's'});
-      return problem(const ProblemDto(status: 409, code: ErrorCodes.tierFull, title: 'Tier full', tier: 's', max: 2));
+      return problem(const ProblemDto(status: 409, code: ErrorCodes.tierFull, title: 'Tier full', tier: 's', max: 3));
     });
 
     final result = await HttpTacticRepository(apiOver(server, tokens: tokens)).place(published, Tier.s, by: ana);
 
-    expect(result, const Failure<TierList>(TierFull(Tier.s, max: 2)));
+    expect(result, const Failure<TierList>(TierFull(Tier.s, max: 3)));
   });
 
   test('a change of status goes to the call for that change, and an edit to the tactic itself', () async {

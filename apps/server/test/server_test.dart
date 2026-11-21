@@ -115,15 +115,16 @@ void main() {
   test('two admins putting a comp into the last place in S at the same moment: exactly one gets it', () async {
     final ana = await logIn('ana');
     final ivana = await logIn('admin2');
+    expect((await place(ana, 't-07', 's')).statusCode, 200);
 
     final answers = await Future.wait([place(ana, 't-05', 's'), place(ivana, 't-06', 's')]);
 
     expect(answers.map((answer) => answer.statusCode), unorderedEquals([200, 409]));
     final refused = bodyOf(answers.firstWhere((answer) => answer.statusCode == 409));
     expect(refused, containsPair('code', ErrorCodes.tierFull));
-    expect(refused, containsPair('max', 2));
+    expect(refused, containsPair('max', 3));
     final tierList = TierListDto.fromJson(bodyOf(await http.get(base.replace(path: ApiPaths.tierList))));
-    expect(tierList.placements.where((placement) => placement.tier == 's'), hasLength(2));
+    expect(tierList.placements.where((placement) => placement.tier == 's'), hasLength(3));
   });
 
   test('two admins hiding the same comp at once: one wins, the other is told it already changed', () async {

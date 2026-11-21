@@ -53,7 +53,7 @@ void main() {
       const NotPlaceable(),
       const NotAllowed(),
       const HiddenByAdmin(),
-      const TierFull(Tier.s, max: 2),
+      const TierFull(Tier.s, max: 3),
       InvalidTransition(
         from: Archived(at: DateTime.utc(2026, 11, 20)),
         to: Published(at: DateTime.utc(2026, 11, 21)),
