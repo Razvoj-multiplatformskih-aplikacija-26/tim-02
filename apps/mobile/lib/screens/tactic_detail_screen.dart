@@ -40,7 +40,10 @@ class TacticDetailScreen extends StatelessWidget {
         appBar: AppBar(actions: const [if (kDebugMode) DebugMenu(reloads: false)]),
         body: switch (state) {
           TacticsLoading() => const LoadingView(),
-          TacticsFailure() => FailureView(onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested())),
+          TacticsFailure(:final cause) => FailureView(
+            cause: cause,
+            onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
+          ),
           TacticsEmpty() => const EmptyView(title: 'Taktika nije pronađena.'),
           TacticsLoaded() => switch (state.tactic(id)) {
             null => const EmptyView(title: 'Taktika nije pronađena.'),

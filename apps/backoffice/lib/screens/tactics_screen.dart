@@ -375,7 +375,10 @@ class _TacticsScreenState extends State<TacticsScreen> {
               listener: (context, state) => _showNotice((state as TacticsLoaded).notice!),
               builder: (context, state) => switch (state) {
                 TacticsLoading() => const LoadingView(),
-                TacticsFailure() => FailureView(onRetry: () => _bloc.add(const TacticsRequested())),
+                TacticsFailure(:final cause) => FailureView(
+                  cause: cause,
+                  onRetry: () => _bloc.add(const TacticsRequested()),
+                ),
                 TacticsEmpty() => const EmptyView(title: 'Još nema taktika.'),
                 TacticsLoaded() => LayoutBuilder(builder: (context, constraints) => _loaded(state, constraints)),
               },

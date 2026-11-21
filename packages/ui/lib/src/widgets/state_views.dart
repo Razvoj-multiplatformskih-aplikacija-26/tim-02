@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../text/failures.dart';
+
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
 
@@ -41,9 +43,10 @@ class EmptyView extends StatelessWidget {
 }
 
 class FailureView extends StatelessWidget {
-  const FailureView({super.key, required this.onRetry});
+  const FailureView({super.key, required this.onRetry, this.cause});
 
   final VoidCallback onRetry;
+  final Object? cause;
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +65,7 @@ class FailureView extends StatelessWidget {
                   const SizedBox(height: 20),
                   Semantics(
                     liveRegion: true,
-                    child: Text(
-                      'Podaci trenutno nisu dostupni.',
-                      style: theme.textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
+                    child: Text(failureMessage(cause), style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
                   ),
                   const SizedBox(height: 16),
                   FilledButton.icon(

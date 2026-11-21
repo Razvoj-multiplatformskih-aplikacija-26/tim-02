@@ -21,6 +21,10 @@ abstract final class AccessPolicy {
   static bool canModerate(User user) => user.role == Role.admin;
 
   static bool canEdit(User user, Tactic tactic) => user.role == Role.admin || tactic.authorId == user.id;
+
+  static bool canUseMobile(User user) => user.role == Role.user || user.role == Role.creator;
+
+  static bool canUseBackoffice(User user) => user.role == Role.creator || user.role == Role.admin;
 }
 
 List<Tactic> visibleTactics(Iterable<Tactic> tactics, User? user) =>

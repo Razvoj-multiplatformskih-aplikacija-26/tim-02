@@ -26,7 +26,10 @@ class CompsScreen extends StatelessWidget {
         child: BlocBuilder<TacticsBloc, TacticsState>(
           builder: (context, state) => switch (state) {
             TacticsLoading() => const LoadingView(),
-            TacticsFailure() => FailureView(onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested())),
+            TacticsFailure(:final cause) => FailureView(
+              cause: cause,
+              onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
+            ),
             TacticsEmpty() => const EmptyView(title: 'Za ovaj patch još nema kompozicija.'),
             TacticsLoaded() => CompsView(
               patch: state.tierList.patch,
