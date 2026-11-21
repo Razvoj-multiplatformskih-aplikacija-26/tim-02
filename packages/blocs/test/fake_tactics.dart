@@ -53,7 +53,11 @@ final class FakeTactics implements TacticRepository, CatalogRepository {
   }
 
   @override
-  Future<TierList> saveTierList(TierList tierList) async => this.tierList = tierList;
+  Future<Result<TierList>> place(Tactic tactic, Tier? tier, {required User by}) async {
+    final placed = placeTactic(tierList, tactic, tier: tier, tactics: tactics, by: by);
+    if (placed case Success(:final value)) tierList = value;
+    return placed;
+  }
 
   @override
   Future<Catalog> catalog() async => const Catalog(champions: [], items: []);

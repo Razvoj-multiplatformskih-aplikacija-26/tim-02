@@ -45,8 +45,13 @@ final class PostgresTactics implements TacticRepository, CatalogRepository {
   }
 
   @override
-  Future<TierList> saveTierList(TierList tierList) => _database.runTx((session) async {
-    await TacticStore(session).replacePlacements(tierList);
-    return tierList;
+  Future<Result<TierList>> place(Tactic tactic, Tier? tier, {required User by}) => _database.runTx((session) async {
+    final store = TacticStore(session);
+    final tierList = await store.tierList(locked: true);
+    final current = await store.tactic(tactic.id);
+    if (current == null) return const Failure(NotFound());
+    final placed = placeTactic(tierList, current, tier: tier, tactics: await store.tactics(), by: by);
+    if (placed case Success(:final value)) await store.replacePlacements(value);
+    return placed;
   });
 }

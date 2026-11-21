@@ -4,12 +4,13 @@ import 'dart:io';
 import 'package:postgres/postgres.dart';
 import 'package:relic/relic.dart' show IOAdapter, RelicServer;
 import 'package:server/server.dart';
+import 'package:use_cases/use_cases.dart' show SystemClock;
 
 Future<void> main() async {
   final config = ServerConfig.fromEnvironment(serverEnvironment());
   final database = Pool<void>.withUrl(config.databaseUrl);
   await seedDemoData(database, now: DateTime.now().toUtc(), demoPassword: config.demoPassword);
-  final handlers = TacticHandlers(tactics: PostgresTactics(database));
+  final handlers = TacticHandlers(tactics: PostgresTactics(database), clock: const SystemClock());
   final sessions = SessionHandlers(
     accounts: AccountStore(database),
     secret: config.jwtSecret,

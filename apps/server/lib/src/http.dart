@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:api_contract/api_contract.dart';
 import 'package:api_mapping/api_mapping.dart';
 import 'package:domain/domain.dart';
-import 'package:relic/relic.dart';
+import 'package:relic/relic.dart' hide Result;
 
 final _problemMimeType = MimeType.parse(ProblemDto.mediaType);
 
@@ -18,6 +18,11 @@ Response problemResponse(ProblemDto problem) =>
 
 Response badRequest(String title) =>
     problemResponse(ProblemDto(status: 400, code: ErrorCodes.badRequest, title: title));
+
+Response respond<T>(Result<T> result, Object? Function(T value) body, {int status = 200}) => switch (result) {
+  Success(:final value) => json(status, body(value)),
+  Failure(:final error) => problem(error),
+};
 
 const maxBodyBytes = 16 * 1024;
 

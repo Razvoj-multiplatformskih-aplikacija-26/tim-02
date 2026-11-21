@@ -11,6 +11,7 @@ final class ProblemDto {
     this.max,
     this.row,
     this.column,
+    this.tier,
     this.from,
     this.to,
   });
@@ -27,6 +28,7 @@ final class ProblemDto {
   final int? max;
   final int? row;
   final int? column;
+  final String? tier;
   final TacticStatusDto? from;
   final TacticStatusDto? to;
 
@@ -40,6 +42,7 @@ final class ProblemDto {
     'max': ?max,
     'row': ?row,
     'column': ?column,
+    'tier': ?tier,
     if (from case final from?) 'from': from.toJson(),
     if (to case final to?) 'to': to.toJson(),
   };
@@ -53,6 +56,7 @@ final class ProblemDto {
     max: jsonOptionalInt(json, 'max'),
     row: jsonOptionalInt(json, 'row'),
     column: jsonOptionalInt(json, 'column'),
+    tier: jsonOptionalString(json, 'tier'),
     from: json['from'] == null ? null : TacticStatusDto.fromJson(jsonObject(json['from'])),
     to: json['to'] == null ? null : TacticStatusDto.fromJson(jsonObject(json['to'])),
   );

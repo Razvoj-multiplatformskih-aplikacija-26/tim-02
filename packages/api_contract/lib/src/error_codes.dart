@@ -9,6 +9,7 @@ abstract final class ErrorCodes {
   static const notPlaceable = 'not-placeable';
   static const notAllowed = 'not-allowed';
   static const hiddenByAdmin = 'hidden-by-admin';
+  static const tierFull = 'tier-full';
   static const invalidTransition = 'invalid-transition';
   static const notFound = 'not-found';
   static const badRequest = 'bad-request';

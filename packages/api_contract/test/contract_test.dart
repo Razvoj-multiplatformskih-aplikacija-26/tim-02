@@ -67,6 +67,20 @@ void main() {
     expect(json, containsPair('type', 'tag:raf.rs,2026:tft-insights/problem/too-many-items'));
   });
 
+  test('carries the bodies of the calls that change a tactic or the tier list through JSON', () {
+    final changes = TacticChangesDto(title: tactic.title, description: tactic.description, variants: tactic.variants);
+    final draft = NewTacticDto(title: tactic.title, variants: tactic.variants);
+
+    expect(TacticChangesDto.fromJson(throughJson(changes.toJson())).toJson(), changes.toJson());
+    expect(NewTacticDto.fromJson(throughJson(draft.toJson())).toJson(), draft.toJson());
+    expect(
+      HideDto.fromJson(throughJson(const HideDto(reason: 'Zastarela postava.').toJson())).reason,
+      'Zastarela postava.',
+    );
+    expect(TierChangeDto.fromJson(throughJson(const TierChangeDto(tier: 's').toJson())).tier, 's');
+    expect(TierChangeDto.fromJson(throughJson(const TierChangeDto(tier: null).toJson())).tier, isNull);
+  });
+
   test('ignores fields it does not know', () {
     final json = throughJson({...tactic.toJson(), 'likes': 12});
 

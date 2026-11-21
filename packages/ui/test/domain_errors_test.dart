@@ -7,5 +7,6 @@ void main() {
     expect(const TooManyItems(3, max: 2).message, 'Šampion može nositi najviše 2 predmeta.');
     expect(const HideReasonTooShort(4, min: 15).message, 'Obrazloženje mora imati bar 15 znakova.');
     expect(const InvalidTacticTitle(81, max: 80).message, 'Naslov mora imati od 1 do 80 znakova.');
+    expect(const TierFull(Tier.s, max: 2).message, 'Tier S je pun (najviše 2 kompozicije).');
   });
 }

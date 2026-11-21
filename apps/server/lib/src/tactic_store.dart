@@ -55,7 +55,12 @@ final class TacticStore {
            @reason, @hiddenBy, @updatedAt, @variants::jsonb)
         RETURNING id
       '''),
-      parameters: {..._columns(tactic), 'id': newId ? null : tactic.id.value, 'carry': tactic.carry.id.value},
+      parameters: {
+        ..._columns(tactic),
+        'id': newId ? null : tactic.id.value,
+        'author': tactic.authorId.value,
+        'carry': tactic.carry.id.value,
+      },
     );
     return TacticId(rows.single[0]! as String);
   }
@@ -81,8 +86,9 @@ final class TacticStore {
     return result.affectedRows == 1;
   }
 
-  Future<TierList> tierList() async {
-    final patch = (await _database.execute('SELECT id FROM patches WHERE is_current')).single[0]! as String;
+  Future<TierList> tierList({bool locked = false}) async {
+    final current = await _database.execute('SELECT id FROM patches WHERE is_current${locked ? ' FOR UPDATE' : ''}');
+    final patch = current.single[0]! as String;
     final rows = await _database.execute(
       Sql.named('SELECT tactic_id, tier FROM tier_placements WHERE patch_id = @patch ORDER BY position'),
       parameters: {'patch': patch},
@@ -119,7 +125,6 @@ final class TacticStore {
 Map<String, Object?> _columns(Tactic tactic) {
   final dto = tactic.toDto();
   return {
-    'author': dto.authorId,
     'title': dto.title,
     'description': dto.description,
     'status': dto.status.kind,

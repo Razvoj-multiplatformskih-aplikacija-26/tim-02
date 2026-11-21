@@ -53,6 +53,7 @@ void main() {
       const NotPlaceable(),
       const NotAllowed(),
       const HiddenByAdmin(),
+      const TierFull(Tier.s, max: 2),
       InvalidTransition(
         from: Archived(at: DateTime.utc(2026, 11, 20)),
         to: Published(at: DateTime.utc(2026, 11, 21)),
@@ -66,7 +67,7 @@ void main() {
   });
 
   test('knows no domain error for a code it has not seen', () {
-    const problem = ProblemDto(status: 422, code: 'tier-full', title: 'Tier full', max: 2);
+    const problem = ProblemDto(status: 409, code: 'patch-closed', title: 'Patch closed');
 
     expect(problem.toDomainError(), isNull);
   });

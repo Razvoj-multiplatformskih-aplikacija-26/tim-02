@@ -13,5 +13,5 @@ abstract interface class TacticRepository {
 
   Future<Result<TacticId>> delete(TacticId id);
 
-  Future<TierList> saveTierList(TierList tierList);
+  Future<Result<TierList>> place(Tactic tactic, Tier? tier, {required User by});
 }

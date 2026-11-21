@@ -15,6 +15,7 @@ class TacticPanel extends StatelessWidget {
     this.onHide,
     this.onRestore,
     this.onEdit,
+    this.tiers = const {},
     this.onPlace,
     this.busy = false,
   });
@@ -29,6 +30,7 @@ class TacticPanel extends StatelessWidget {
   final VoidCallback? onHide;
   final VoidCallback? onRestore;
   final VoidCallback? onEdit;
+  final Set<Tier?> tiers;
   final ValueChanged<Tier?>? onPlace;
   final bool busy;
 
@@ -76,12 +78,12 @@ class TacticPanel extends StatelessWidget {
                             label: const Text('Uredi (E)'),
                           ),
                         ),
-                      if (onPlace case final place?)
+                      if (onPlace case final place? when tiers.isNotEmpty)
                         MenuAnchor(
                           menuChildren: [
                             for (final option in [...Tier.values, null])
                               MenuItemButton(
-                                onPressed: option == tier ? null : () => place(option),
+                                onPressed: option == tier || !tiers.contains(option) ? null : () => place(option),
                                 child: Text(option?.label ?? 'Bez tiera'),
                               ),
                           ],

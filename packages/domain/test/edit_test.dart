@@ -113,11 +113,11 @@ void main() {
 
     test('lets an admin move a published tactic to the end of another tier or off the list', () {
       final published = tactic('t-1', Published(at: now));
-      expect(placeTactic(list, published, tier: Tier.a, by: ana).valueOrNull?.placements, const [
+      expect(placeTactic(list, published, tier: Tier.a, tactics: const [], by: ana).valueOrNull?.placements, const [
         TierPlacement(tactic: TacticId('t-2'), tier: Tier.a),
         TierPlacement(tactic: TacticId('t-1'), tier: Tier.a),
       ]);
-      expect(placeTactic(list, published, tier: null, by: ana).valueOrNull?.placements, const [
+      expect(placeTactic(list, published, tier: null, tactics: const [], by: ana).valueOrNull?.placements, const [
         TierPlacement(tactic: TacticId('t-2'), tier: Tier.a),
       ]);
     });
@@ -128,14 +128,68 @@ void main() {
           list,
           tactic('t-1', Published(at: now)),
           tier: Tier.b,
+          tactics: const [],
           by: marko,
         ),
         const Failure<TierList>(NotAllowed()),
       );
       expect(
-        placeTactic(list, tactic('t-3', const Draft()), tier: Tier.b, by: ana),
+        placeTactic(list, tactic('t-3', const Draft()), tier: Tier.b, tactics: const [], by: ana),
         const Failure<TierList>(NotPlaceable()),
       );
+    });
+
+    group('tier S holds at most ${TierList.sCapacity} comps', () {
+      const full = TierList(
+        patch: PatchId('18.5c'),
+        placements: [
+          TierPlacement(tactic: TacticId('t-1'), tier: Tier.s),
+          TierPlacement(tactic: TacticId('t-2'), tier: Tier.s),
+          TierPlacement(tactic: TacticId('t-3'), tier: Tier.a),
+        ],
+      );
+      final third = tactic('t-3', Published(at: now));
+
+      test('refuses a third comp and offers every other tier', () {
+        expect(
+          placeTactic(full, third, tier: Tier.s, tactics: const [], by: ana),
+          const Failure<TierList>(TierFull(Tier.s, max: 2)),
+        );
+        expect(placeableTiers(full, third, const [], ana), {Tier.a, Tier.b, Tier.c, Tier.situational, null});
+      });
+
+      test('counts a hidden comp, so restoring it never overfills the tier', () {
+        final tactics = [
+          tactic('t-2', Hidden(reason: HideReason.parse('Zastarela taktika').valueOrNull!, by: ana.id, at: now)),
+        ];
+        expect(placeTactic(full, third, tier: Tier.s, tactics: tactics, by: ana).isSuccess, isFalse);
+      });
+
+      test('does not count an archived comp', () {
+        final tactics = [tactic('t-2', Archived(at: now))];
+        expect(placeTactic(full, third, tier: Tier.s, tactics: tactics, by: ana).isSuccess, isTrue);
+      });
+
+      test('lets a comp already in S stay there, and moving one out frees a place', () {
+        expect(
+          placeTactic(
+            full,
+            tactic('t-1', Published(at: now)),
+            tier: Tier.s,
+            tactics: const [],
+            by: ana,
+          ).isSuccess,
+          isTrue,
+        );
+        final freed = placeTactic(
+          full,
+          tactic('t-1', Published(at: now)),
+          tier: Tier.a,
+          tactics: const [],
+          by: ana,
+        );
+        expect(placeTactic(freed.valueOrNull!, third, tier: Tier.s, tactics: const [], by: ana).isSuccess, isTrue);
+      });
     });
   });
 }

@@ -45,7 +45,7 @@ final class ChangedMeanwhile implements TacticRepository {
   Future<Result<TacticId>> delete(TacticId id) => throw UnimplementedError();
 
   @override
-  Future<TierList> saveTierList(TierList tierList) => throw UnimplementedError();
+  Future<Result<TierList>> place(Tactic tactic, Tier? tier, {required User by}) => throw UnimplementedError();
 }
 
 void main() {

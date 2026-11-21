@@ -28,3 +28,13 @@ final class TierListDto {
     placements: [for (final placement in jsonObjects(json, 'placements')) TierPlacementDto.fromJson(placement)],
   );
 }
+
+final class TierChangeDto {
+  const TierChangeDto({required this.tier});
+
+  final String? tier;
+
+  Map<String, Object?> toJson() => {'tier': tier};
+
+  factory TierChangeDto.fromJson(Map<String, Object?> json) => TierChangeDto(tier: jsonOptionalString(json, 'tier'));
+}

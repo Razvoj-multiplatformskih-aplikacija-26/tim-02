@@ -222,7 +222,8 @@ class _TacticsScreenState extends State<TacticsScreen> {
             onHide: state.actionsFor(selected.id).contains(TacticAction.hide) ? _hide : null,
             onRestore: state.actionsFor(selected.id).contains(TacticAction.restore) ? _restore : null,
             onEdit: state.canEdit(selected.id) ? _edit : null,
-            onPlace: state.canPlace(selected.id) ? (tier) => _bloc.add(TacticTierChanged(selected.id, tier)) : null,
+            tiers: state.placeableTiersFor(selected.id),
+            onPlace: (tier) => _bloc.add(TacticTierChanged(selected.id, tier)),
           );
     if (constraints.maxWidth < 840) {
       return Column(

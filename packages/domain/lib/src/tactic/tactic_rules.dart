@@ -109,13 +109,35 @@ bool _boardsFilled(List<TacticVariant> variants) =>
 
 bool mayEdit(Tactic tactic, User user) => AccessPolicy.canEdit(user, tactic) && tactic.status is! Archived;
 
-Result<TierList> placeTactic(TierList tierList, Tactic tactic, {required Tier? tier, required User by}) {
+Result<TierList> placeTactic(
+  TierList tierList,
+  Tactic tactic, {
+  required Tier? tier,
+  required Iterable<Tactic> tactics,
+  required User by,
+}) {
   if (!AccessPolicy.canModerate(by)) return const Failure(NotAllowed());
   if (tactic.status is! Published) return const Failure(NotPlaceable());
+  if (tier == Tier.s && _takenInS(tierList, tactics, besides: tactic.id) >= TierList.sCapacity) {
+    return const Failure(TierFull(Tier.s, max: TierList.sCapacity));
+  }
   return Success(tierList.place(tactic.id, tier));
 }
 
-bool mayPlace(Tactic tactic, User user) => AccessPolicy.canModerate(user) && tactic.status is Published;
+int _takenInS(TierList tierList, Iterable<Tactic> tactics, {required TacticId besides}) {
+  final archived = {
+    for (final tactic in tactics)
+      if (tactic.status is Archived) tactic.id,
+  };
+  return tierList.placements
+      .where((p) => p.tier == Tier.s && p.tactic != besides && !archived.contains(p.tactic))
+      .length;
+}
+
+Set<Tier?> placeableTiers(TierList tierList, Tactic tactic, Iterable<Tactic> tactics, User user) => {
+  for (final tier in [...Tier.values, null])
+    if (placeTactic(tierList, tactic, tier: tier, tactics: tactics, by: user).isSuccess) tier,
+};
 
 final _anyReason = HideReason.parse('x' * HideReason.minLength).valueOrNull!;
 

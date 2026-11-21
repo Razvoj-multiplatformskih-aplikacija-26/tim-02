@@ -165,3 +165,50 @@ final class TacticDto {
     variants: [for (final variant in jsonObjects(json, 'variants')) TacticVariantDto.fromJson(variant)],
   );
 }
+
+final class NewTacticDto {
+  const NewTacticDto({required this.title, required this.variants});
+
+  final String title;
+  final List<TacticVariantDto> variants;
+
+  Map<String, Object?> toJson() => {
+    'title': title,
+    'variants': [for (final variant in variants) variant.toJson()],
+  };
+
+  factory NewTacticDto.fromJson(Map<String, Object?> json) => NewTacticDto(
+    title: jsonString(json, 'title'),
+    variants: [for (final variant in jsonObjects(json, 'variants')) TacticVariantDto.fromJson(variant)],
+  );
+}
+
+final class TacticChangesDto {
+  const TacticChangesDto({required this.title, required this.description, required this.variants});
+
+  final String title;
+  final String description;
+  final List<TacticVariantDto> variants;
+
+  Map<String, Object?> toJson() => {
+    'title': title,
+    'description': description,
+    'variants': [for (final variant in variants) variant.toJson()],
+  };
+
+  factory TacticChangesDto.fromJson(Map<String, Object?> json) => TacticChangesDto(
+    title: jsonString(json, 'title'),
+    description: jsonString(json, 'description'),
+    variants: [for (final variant in jsonObjects(json, 'variants')) TacticVariantDto.fromJson(variant)],
+  );
+}
+
+final class HideDto {
+  const HideDto({required this.reason});
+
+  final String reason;
+
+  Map<String, Object?> toJson() => {'reason': reason};
+
+  factory HideDto.fromJson(Map<String, Object?> json) => HideDto(reason: jsonString(json, 'reason'));
+}

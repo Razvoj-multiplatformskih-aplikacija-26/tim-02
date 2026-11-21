@@ -1,5 +1,7 @@
 import 'package:domain/domain.dart';
 
+import 'serbian.dart';
+
 extension DomainErrorMessage on DomainError {
   String get message => switch (this) {
     HideReasonTooShort(:final min) => 'Obrazloženje mora imati bar $min znakova.',
@@ -12,6 +14,7 @@ extension DomainErrorMessage on DomainError {
     NotPlaceable() => 'Na listu može samo objavljena taktika.',
     NotAllowed() => 'Nemate pravo na ovu radnju.',
     HiddenByAdmin() => 'Taktiku je sakrio administrator; samo on može da je vrati.',
+    TierFull(:final tier, :final max) => 'Tier ${tier.label} je pun (najviše $max kompozicije).',
     InvalidTransition() => 'Ova promena stanja nije moguća.',
     NotFound() => 'Taktika nije pronađena.',
   };

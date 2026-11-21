@@ -19,6 +19,8 @@ final class TierPlacement extends Equatable {
 final class TierList extends Equatable {
   const TierList({required this.patch, required this.placements});
 
+  static const sCapacity = 2;
+
   final PatchId patch;
   final List<TierPlacement> placements;
 

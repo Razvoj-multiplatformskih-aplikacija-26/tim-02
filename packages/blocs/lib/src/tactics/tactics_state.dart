@@ -101,9 +101,9 @@ final class TacticsLoaded extends TacticsState {
     null => false,
   };
 
-  bool canPlace(TacticId id) => switch (tactic(id)) {
-    final tactic? => mayPlace(tactic, user),
-    null => false,
+  Set<Tier?> placeableTiersFor(TacticId id) => switch (tactic(id)) {
+    final tactic? => placeableTiers(tierList, tactic, tactics, user),
+    null => const {},
   };
 
   TacticsLoaded withFilter(TacticStatusKind? filter) => TacticsLoaded(

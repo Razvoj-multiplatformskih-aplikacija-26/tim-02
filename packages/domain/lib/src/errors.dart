@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'lineup/lineup.dart';
 import 'tactic/tactic_status.dart';
+import 'tactic/tier_list.dart';
 
 sealed class DomainError extends Equatable {
   const DomainError();
@@ -71,6 +72,16 @@ final class InvalidTacticTitle extends DomainError {
 
 final class NotPlaceable extends DomainError {
   const NotPlaceable();
+}
+
+final class TierFull extends DomainError {
+  const TierFull(this.tier, {required this.max});
+
+  final Tier tier;
+  final int max;
+
+  @override
+  List<Object?> get props => [tier, max];
 }
 
 final class InvalidTransition extends DomainError {

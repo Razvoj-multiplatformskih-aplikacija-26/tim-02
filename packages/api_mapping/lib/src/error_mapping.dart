@@ -39,6 +39,13 @@ extension DomainErrorMapping on DomainError {
     NotPlaceable() => const ProblemDto(status: 409, code: ErrorCodes.notPlaceable, title: 'Not placeable'),
     NotAllowed() => const ProblemDto(status: 403, code: ErrorCodes.notAllowed, title: 'Not allowed'),
     HiddenByAdmin() => const ProblemDto(status: 409, code: ErrorCodes.hiddenByAdmin, title: 'Hidden by an admin'),
+    TierFull(:final tier, :final max) => ProblemDto(
+      status: 409,
+      code: ErrorCodes.tierFull,
+      title: 'Tier full',
+      tier: tier.name,
+      max: max,
+    ),
     InvalidTransition(:final from, :final to) => ProblemDto(
       status: 409,
       code: ErrorCodes.invalidTransition,
@@ -65,6 +72,10 @@ extension ProblemMapping on ProblemDto {
     ProblemDto(code: ErrorCodes.notPlaceable) => const NotPlaceable(),
     ProblemDto(code: ErrorCodes.notAllowed) => const NotAllowed(),
     ProblemDto(code: ErrorCodes.hiddenByAdmin) => const HiddenByAdmin(),
+    ProblemDto(code: ErrorCodes.tierFull, :final tier?, :final max?) => switch (Tier.values.asNameMap()[tier]) {
+      final tier? => TierFull(tier, max: max),
+      null => null,
+    },
     ProblemDto(code: ErrorCodes.invalidTransition, :final from?, :final to?) => InvalidTransition(
       from: from.toDomain(),
       to: to.toDomain(),

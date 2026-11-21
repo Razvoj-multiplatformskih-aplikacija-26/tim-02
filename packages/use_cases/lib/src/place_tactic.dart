@@ -10,9 +10,15 @@ final class PlaceTactic {
   Future<Result<TierList>> call({required TacticId id, required Tier? tier, required User by}) async {
     final tactic = await tactics.find(id);
     if (tactic == null) return const Failure(NotFound());
-    return switch (placeTactic(await tactics.currentTierList(), tactic, tier: tier, by: by)) {
+    return switch (placeTactic(
+      await tactics.currentTierList(),
+      tactic,
+      tier: tier,
+      tactics: await tactics.all(),
+      by: by,
+    )) {
       Failure(:final error) => Failure(error),
-      Success(:final value) => Success(await tactics.saveTierList(value)),
+      Success() => await tactics.place(tactic, tier, by: by),
     };
   }
 }
