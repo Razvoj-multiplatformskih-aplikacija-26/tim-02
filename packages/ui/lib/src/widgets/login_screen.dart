@@ -115,7 +115,7 @@ class _LoginFormState extends State<_LoginForm> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.fromLTRB(8, 16, 16, 16),
                         child: Row(
                           children: [
                             Icon(Icons.error_outline, color: theme.colorScheme.error),
