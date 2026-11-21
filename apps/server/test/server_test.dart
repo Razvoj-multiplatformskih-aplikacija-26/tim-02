@@ -95,6 +95,7 @@ void main() {
     database = Pool<void>.withUrl(Uri.parse(config.databaseUrl).replace(path: '/tft_insights_test').toString());
     await migrateWithDbmate(Uri.parse(config.databaseUrl));
     await seedDemoData(database, now: DateTime.now().toUtc(), demoPassword: demoPassword);
+    await importMatches(database, FakeMatchSource(File('fixtures/matches.json')));
     final handlers = TacticHandlers(tactics: PostgresTactics(database), clock: const SystemClock());
     final sessions = SessionHandlers(
       accounts: AccountStore(database),
@@ -207,5 +208,16 @@ void main() {
     final deletedByMarko = await http.delete(draft, headers: as(marko));
 
     expect([seen.statusCode, deletedByLuka.statusCode, deletedByMarko.statusCode], [404, 404, 204]);
+  });
+
+  test('the matches from the source are stored once, however often the server starts', () async {
+    await importMatches(database, FakeMatchSource(File('fixtures/matches.json')));
+
+    final rows = await database.execute(
+      "SELECT id, data -> 'boards' -> 0 -> 'placement' FROM matches ORDER BY played_at DESC",
+    );
+
+    expect(rows.map((row) => row[0]), ['EUN1_3810452291', 'EUN1_3810398874', 'EUN1_3810331507']);
+    expect(rows.first[1], 1);
   });
 }

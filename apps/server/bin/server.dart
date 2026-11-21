@@ -10,6 +10,7 @@ Future<void> main() async {
   final config = ServerConfig.fromEnvironment(serverEnvironment());
   final database = Pool<void>.withUrl(config.databaseUrl);
   await seedDemoData(database, now: DateTime.now().toUtc(), demoPassword: config.demoPassword);
+  await importMatches(database, FakeMatchSource(File.fromUri(Platform.script.resolve('../fixtures/matches.json'))));
   final handlers = TacticHandlers(tactics: PostgresTactics(database), clock: const SystemClock());
   final sessions = SessionHandlers(
     accounts: AccountStore(database),

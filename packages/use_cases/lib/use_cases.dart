@@ -7,6 +7,7 @@ export 'src/get_tactics.dart';
 export 'src/get_tier_list.dart';
 export 'src/place_tactic.dart';
 export 'src/ports/catalog_repository.dart';
+export 'src/ports/match_source.dart';
 export 'src/ports/tactic_repository.dart';
 export 'src/repository_exception.dart';
 export 'src/save_draft.dart';

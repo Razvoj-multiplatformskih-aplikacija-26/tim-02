@@ -1,0 +1,47 @@
+[
+  {
+    "id": "EUN1_3810452291",
+    "patch": "18.5c",
+    "playedAt": "2026-11-20T21:14:00Z",
+    "boards": [
+      {"placement": 1, "champions": ["DA_18_Ahri", "DA_18_Ezreal", "DA_Lux18_Base", "DA_18_Ornn", "DA_18_Sejuani", "DA_18_Lillia"]},
+      {"placement": 2, "champions": ["DA_18_Azir", "DA_18_Rammus", "DA_18_Malphite", "DA_18_Soraka", "DA_18_Veigar"]},
+      {"placement": 3, "champions": ["DA_18_MasterYi_AD", "DA_KogMaw18_AD", "DA_18_Shen", "DA_18_Warwick", "DA_18_Sett"]},
+      {"placement": 4, "champions": ["DA_18_Caitlyn", "DA_18_Ashe", "DA_18_Leona", "DA_18_Alistar", "DA_18_Sivir"]},
+      {"placement": 5, "champions": ["DA_18_Xayah", "DA_18_Rakan", "DA_18_Diana", "DA_18_Kayle", "DA_18_Teemo"]},
+      {"placement": 6, "champions": ["DA_18_Yunara", "DA_18_Aphelios", "DA_18_Morgana", "DA_18_Maokai"]},
+      {"placement": 7, "champions": ["DA_18_Tristana", "DA_18_Kennen", "DA_18_Zyra", "DA_18_Elise"]},
+      {"placement": 8, "champions": ["DA_18_Varus", "DA_18_RekSai", "DA_18_Yorick", "DA_18_Hecarim"]}
+    ]
+  },
+  {
+    "id": "EUN1_3810398874",
+    "patch": "18.5c",
+    "playedAt": "2026-11-20T20:31:00Z",
+    "boards": [
+      {"placement": 1, "champions": ["DA_18_MasterYi_AD", "DA_KogMaw18_AD", "DA_18_Shen", "DA_18_Sejuani", "DA_18_Sett"]},
+      {"placement": 2, "champions": ["DA_18_Ahri", "DA_18_Ezreal", "DA_Lux18_Base", "DA_18_Ornn", "DA_18_Lillia"]},
+      {"placement": 3, "champions": ["DA_18_Xayah", "DA_18_Rakan", "DA_18_Kayle", "DA_18_Diana", "DA_18_Leona"]},
+      {"placement": 4, "champions": ["DA_18_Azir", "DA_18_Rammus", "DA_18_Veigar", "DA_18_Malphite"]},
+      {"placement": 5, "champions": ["DA_18_Caitlyn", "DA_18_Sivir", "DA_18_Ashe", "DA_18_Alistar"]},
+      {"placement": 6, "champions": ["DA_18_Cassiopeia", "DA_18_LeBlanc", "DA_18_Morgana", "DA_18_Ivern"]},
+      {"placement": 7, "champions": ["DA_18_Yunara", "DA_18_Aphelios", "DA_18_Maokai", "DA_18_Rengar"]},
+      {"placement": 8, "champions": ["DA_18_Tristana", "DA_18_Kennen", "DA_18_Teemo", "DA_18_Camille"]}
+    ]
+  },
+  {
+    "id": "EUN1_3810331507",
+    "patch": "18.5c",
+    "playedAt": "2026-11-20T19:48:00Z",
+    "boards": [
+      {"placement": 1, "champions": ["DA_18_Azir", "DA_18_Rammus", "DA_18_Malphite", "DA_18_Soraka", "DA_18_Veigar", "DA_18_Ornn"]},
+      {"placement": 2, "champions": ["DA_18_Xayah", "DA_18_Rakan", "DA_18_Kayle", "DA_18_Diana"]},
+      {"placement": 3, "champions": ["DA_18_Ahri", "DA_18_Ezreal", "DA_Lux18_Base", "DA_18_Lillia"]},
+      {"placement": 4, "champions": ["DA_18_MasterYi_AD", "DA_KogMaw18_AD", "DA_18_Shen", "DA_18_Warwick"]},
+      {"placement": 5, "champions": ["DA_18_Yunara", "DA_18_Aphelios", "DA_18_Morgana", "DA_18_Sejuani"]},
+      {"placement": 6, "champions": ["DA_18_Caitlyn", "DA_18_Ashe", "DA_18_Leona", "DA_18_Sivir"]},
+      {"placement": 7, "champions": ["DA_18_Varus", "DA_18_RekSai", "DA_18_Hecarim", "DA_18_Yorick"]},
+      {"placement": 8, "champions": ["DA_18_Cassiopeia", "DA_18_LeBlanc", "DA_18_Elise", "DA_18_Zyra"]}
+    ]
+  }
+]

@@ -2,6 +2,7 @@ export 'src/catalog.dart';
 export 'src/errors.dart';
 export 'src/identifiers.dart';
 export 'src/lineup/lineup.dart';
+export 'src/match_record.dart';
 export 'src/result.dart';
 export 'src/tactic/hide_reason.dart';
 export 'src/tactic/tactic.dart';
