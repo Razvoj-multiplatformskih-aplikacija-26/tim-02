@@ -27,8 +27,7 @@ final class HttpSessionRepository implements SessionRepository {
       final answer = await _api.get(ApiPaths.currentSession);
       return accepted<User>(answer, (json) => SessionDto.fromJson(object(json)).user.toDomain());
     } on RepositoryException catch (error) {
-      if (error.failure != RepositoryFailure.sessionExpired) rethrow;
-      await _api.tokens.clear();
+      if (error.failure != RepositoryFailure.sessionExpired || !_api.keepsSessionInCookie) rethrow;
       return null;
     }
   }

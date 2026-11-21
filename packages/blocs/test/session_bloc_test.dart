@@ -10,6 +10,7 @@ final class RememberedSession implements SessionRepository {
   RememberedSession(this.remembered, {this.accounts = const {}});
 
   User? remembered;
+  RepositoryFailure? failure;
   final Map<String, User> accounts;
   final _expirations = StreamController<void>.broadcast();
 
@@ -20,7 +21,10 @@ final class RememberedSession implements SessionRepository {
       remembered = password == 'tft-demo' ? accounts[username] : null;
 
   @override
-  Future<User?> current() async => remembered;
+  Future<User?> current() async => switch (failure) {
+    final failure? => throw RepositoryException('Session check failed', failure: failure),
+    null => remembered,
+  };
 
   @override
   Future<void> logOut() async => remembered = null;
@@ -51,6 +55,14 @@ void main() {
       sessions.expire();
     },
     expect: () => [const SignedIn(marko), const SignedOut(reason: SignOutReason.expired)],
+  );
+
+  blocTest<SessionBloc, SessionState>(
+    'a login that expired while the app was closed says so at the next start',
+    setUp: () => sessions = RememberedSession(marko)..failure = RepositoryFailure.sessionExpired,
+    build: phoneSession,
+    act: (bloc) => bloc.add(const SessionRestoreRequested()),
+    expect: () => [const SignedOut(reason: SignOutReason.expired)],
   );
 
   blocTest<SessionBloc, SessionState>(

@@ -34,8 +34,12 @@ final class SessionBloc extends Bloc<SessionEvent, SessionState> {
       final user = await restoreSession();
       if (user == null) return emit(const SignedOut());
       add(SessionStarted(user));
-    } on RepositoryException {
-      emit(const SignedOut(reason: SignOutReason.unreachable));
+    } on RepositoryException catch (error) {
+      emit(
+        SignedOut(
+          reason: error.failure == RepositoryFailure.sessionExpired ? SignOutReason.expired : SignOutReason.unreachable,
+        ),
+      );
     }
   }
 
