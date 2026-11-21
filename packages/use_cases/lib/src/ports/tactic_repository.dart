@@ -7,9 +7,11 @@ abstract interface class TacticRepository {
 
   Future<Tactic?> find(TacticId id);
 
-  Future<Tactic> save(Tactic tactic);
+  Future<Result<Tactic>> create(Tactic draft);
 
-  Future<void> delete(TacticId id);
+  Future<Result<Tactic>> save(Tactic tactic, {required TacticStatus from});
+
+  Future<Result<TacticId>> delete(TacticId id);
 
   Future<TierList> saveTierList(TierList tierList);
 }

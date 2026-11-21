@@ -32,13 +32,25 @@ final class FakeTactics implements TacticRepository, CatalogRepository {
   }
 
   @override
-  Future<Tactic> save(Tactic tactic) async {
-    tactics[tactics.indexWhere((t) => t.id == tactic.id)] = tactic;
-    return tactic;
+  Future<Result<Tactic>> create(Tactic draft) async {
+    tactics.insert(0, draft);
+    return Success(draft);
   }
 
   @override
-  Future<void> delete(TacticId id) async => tactics.removeWhere((t) => t.id == id);
+  Future<Result<Tactic>> save(Tactic tactic, {required TacticStatus from}) async {
+    final index = tactics.indexWhere((t) => t.id == tactic.id);
+    final stored = tactics[index];
+    if (stored.status != from) return Failure(InvalidTransition(from: stored.status, to: tactic.status));
+    tactics[index] = tactic;
+    return Success(tactic);
+  }
+
+  @override
+  Future<Result<TacticId>> delete(TacticId id) async {
+    tactics.removeWhere((t) => t.id == id);
+    return Success(id);
+  }
 
   @override
   Future<TierList> saveTierList(TierList tierList) async => this.tierList = tierList;

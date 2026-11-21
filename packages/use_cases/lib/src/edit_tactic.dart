@@ -27,7 +27,7 @@ final class EditTactic {
       now: clock.now(),
     )) {
       Failure(:final error) => Failure(error),
-      Success(:final value) => Success(await tactics.save(value)),
+      Success(:final value) => await tactics.save(value, from: tactic.status),
     };
   }
 }

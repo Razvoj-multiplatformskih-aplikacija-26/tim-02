@@ -26,9 +26,10 @@ final class SaveDraft {
             now: now,
           )
         : editTactic(draft, by: by, title: title, description: draft.description, variants: variants, now: now);
-    return switch (result) {
-      Failure(:final error) => Failure(error),
-      Success(:final value) => Success(await tactics.save(value)),
+    return switch ((result, draft)) {
+      (Failure(:final error), _) => Failure(error),
+      (Success(:final value), null) => await tactics.create(value),
+      (Success(:final value), final draft?) => await tactics.save(value, from: draft.status),
     };
   }
 }
