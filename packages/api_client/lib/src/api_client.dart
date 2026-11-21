@@ -81,13 +81,14 @@ final class ApiClient {
     return _answerOf(response);
   }
 
-  ApiAnswer _answerOf(http.Response response) {
+  Future<ApiAnswer> _answerOf(http.Response response) async {
     final status = response.statusCode;
     final json = readJson(() => response.body.isEmpty ? null : jsonDecode(utf8.decode(response.bodyBytes)));
     if (status >= 200 && status < 300) return ApiAccepted(json);
     if (status >= 400 && status < 500 && json is Map<String, Object?>) {
       final problem = readJson(() => ProblemDto.fromJson(json));
       if (problem.code case ErrorCodes.sessionExpired || ErrorCodes.signInRequired) {
+        await tokens.clear();
         _expirations.add(null);
         throw const RepositoryException('Session expired', failure: RepositoryFailure.sessionExpired);
       }

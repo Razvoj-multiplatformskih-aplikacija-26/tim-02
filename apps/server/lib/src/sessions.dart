@@ -43,11 +43,11 @@ final class SessionHandlers {
   };
 
   Handler optionallySignedIn(Handler handler) => (Request request) async {
-    final session = switch (_tokenOf(request)) {
-      final token? => _verify(token),
-      null => null,
-    };
-    if (session != null) currentSession[request] = session;
+    final token = _tokenOf(request);
+    if (token == null) return handler(request);
+    final session = _verify(token);
+    if (session == null) return _unauthorized(_sessionExpired);
+    currentSession[request] = session;
     return handler(request);
   };
 

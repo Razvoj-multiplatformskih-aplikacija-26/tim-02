@@ -94,12 +94,14 @@ void main() {
     );
   });
 
-  test('an expired session is announced so the app can ask for a new login', () async {
+  test('an expired session is announced and its token dropped, so the app asks for a new login', () async {
+    final tokens = MemoryTokenStore();
+    await tokens.write('token-of-marko');
     final server = MockClient(
       (request) async =>
           problem(const ProblemDto(status: 401, code: ErrorCodes.sessionExpired, title: 'Session expired')),
     );
-    final api = apiOver(server);
+    final api = apiOver(server, tokens: tokens);
     final expired = expectLater(api.expirations, emits(null));
 
     await expectLater(
@@ -107,6 +109,7 @@ void main() {
       throwsA(isA<RepositoryException>().having((e) => e.failure, 'failure', RepositoryFailure.sessionExpired)),
     );
     await expired;
+    expect(await tokens.read(), isNull);
   });
 
   test('a wrong password is no session, and a good one keeps the token for the next calls', () async {

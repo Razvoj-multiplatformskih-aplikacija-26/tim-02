@@ -211,6 +211,16 @@ void main() {
     expect([seen.statusCode, deletedByLuka.statusCode, deletedByMarko.statusCode], [404, 404, 204]);
   });
 
+  test('the public list serves a visitor but refuses a token the server did not issue as expired', () async {
+    final tactics = base.replace(path: ApiPaths.tactics);
+
+    final visitor = await http.get(tactics);
+    final forged = await http.get(tactics, headers: as('abc.def.ghi'));
+
+    expect([visitor.statusCode, forged.statusCode], [200, 401]);
+    expect(bodyOf(forged), containsPair('code', ErrorCodes.sessionExpired));
+  });
+
   test('the matches from the source are stored once, however often the server starts', () async {
     await importMatches(database, FakeMatchSource(File('fixtures/matches.json')));
 
