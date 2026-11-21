@@ -96,7 +96,7 @@ docker compose up -d --build
 | `migrate` | dbmate primeni migracije iz `apps/server/migrations`, pa izlazi | — |
 | `server` | server u Dartu na Relic-u, slika iz `apps/server/Dockerfile` | http://localhost:8080 |
 
-Lozinka baze, `DEMO_PASSWORD`, `JWT_SECRET` i portovi su u `.env`, koji nije u git-u. Ako je port zauzet, promenite ga u `.env`: `POSTGRES_PORT` (i isti port u `DATABASE_URL`) ili `SERVER_PORT` (aplikacije tada pokrenite sa `--dart-define=SERVER_URL=http://localhost:<port>`). Kada je baza prazna, server upisuje početne podatke: 30 taktika, tier listu patcha 18.5c, katalog i naloge.
+Lozinka baze, `DEMO_PASSWORD`, `JWT_SECRET` i portovi su u `.env`, koji nije u git-u. Ako je port zauzet, promenite ga u `.env`: `POSTGRES_PORT` (i isti port u `DATABASE_URL`), `SERVER_PORT` (aplikacije tada pokrenite sa `--dart-define=SERVER_URL=http://localhost:<port>`) ili `ADMINER_PORT`. Kada je baza prazna, server upisuje početne podatke: 30 taktika, tier listu patcha 18.5c, katalog i naloge.
 
 Provera: `docker compose ps -a` (servis `migrate` je `Exited (0)`) i `curl localhost:8080/health` (odgovor `ok`; u PowerShell-u `curl.exe`).
 
@@ -107,7 +107,7 @@ Provera: `docker compose ps -a` (servis `migrate` je `Exited (0)`) i `curl local
 | `docker compose down` | gasi sistem, podaci ostaju |
 | `docker compose down -v` | gasi sistem i briše bazu; sledeći `up -d` kreće od nule |
 
-SQL iz terminala: `docker compose exec db psql -U tft -d tft_insights`.
+Baza u pregledaču: `docker compose --profile tools up -d adminer`, pa http://127.0.0.1:8082 (prijava ide sama, podacima iz `.env`). SQL iz terminala: `docker compose exec db psql -U tft -d tft_insights`.
 
 Server bez kontejnera, za debugger i brži restart:
 
