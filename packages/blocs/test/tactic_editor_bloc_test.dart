@@ -150,4 +150,31 @@ void main() {
       expect(saved.stageTips, {2: 'Jak početak.'});
     },
   );
+
+  blocTest<TacticEditorBloc, TacticEditorState>(
+    'TacticEditorBloc keeps the edits after a broken rule and gives up on a tactic archived in the meantime',
+    build: editor,
+    act: (bloc) async {
+      bloc
+        ..add(const TacticTitleChanged(''))
+        ..add(const TacticEditorSubmitted());
+      await bloc.stream.firstWhere((s) => s.error != null);
+      source.tactics[0] = tactic.copyWith(status: Archived(at: now));
+      bloc
+        ..add(const TacticTitleChanged('Ahri reroll'))
+        ..add(const TacticEditorSubmitted());
+    },
+    expect: () => [
+      isA<TacticEditorState>().having((s) => s.title, 'title', ''),
+      isA<TacticEditorState>().having((s) => s.status, 'status', TacticEditorStatus.saving),
+      isA<TacticEditorState>()
+          .having((s) => s.status, 'status', TacticEditorStatus.editing)
+          .having((s) => s.error, 'error', isA<InvalidTacticTitle>()),
+      isA<TacticEditorState>().having((s) => s.title, 'title', 'Ahri reroll'),
+      isA<TacticEditorState>().having((s) => s.status, 'status', TacticEditorStatus.saving),
+      isA<TacticEditorState>()
+          .having((s) => s.status, 'status', TacticEditorStatus.refused)
+          .having((s) => s.error, 'error', const TacticArchived()),
+    ],
+  );
 }

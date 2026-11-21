@@ -3,6 +3,8 @@ import 'package:domain/domain.dart';
 import 'package:equatable/equatable.dart';
 import 'package:use_cases/use_cases.dart';
 
+import '../stale.dart';
+
 part 'tactic_editor_event.dart';
 part 'tactic_editor_state.dart';
 
@@ -133,7 +135,12 @@ final class TacticEditorBloc extends Bloc<TacticEditorEvent, TacticEditorState> 
         case Success(:final value):
           emit(state.copyWith(tactic: value, status: TacticEditorStatus.saved));
         case Failure(:final error):
-          emit(state.copyWith(status: TacticEditorStatus.editing, error: error));
+          emit(
+            state.copyWith(
+              status: isStale(error) ? TacticEditorStatus.refused : TacticEditorStatus.editing,
+              error: error,
+            ),
+          );
       }
     } on Exception {
       emit(state.copyWith(status: TacticEditorStatus.failed));

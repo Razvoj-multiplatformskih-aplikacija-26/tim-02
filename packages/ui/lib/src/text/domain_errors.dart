@@ -15,7 +15,7 @@ extension DomainErrorMessage on DomainError {
     NotAllowed() => 'Nemate pravo na ovu radnju.',
     HiddenByAdmin() => 'Taktiku je sakrio administrator; samo on može da je vrati.',
     TierFull(:final tier, :final max) => 'Tier ${tier.label} je pun (najviše $max kompozicije).',
-    InvalidTransition() => 'Ova promena stanja nije moguća.',
+    InvalidTransition() => 'Taktiku je u međuvremenu promenio drugi korisnik.',
     NotFound() => 'Taktika nije pronađena.',
   };
 }

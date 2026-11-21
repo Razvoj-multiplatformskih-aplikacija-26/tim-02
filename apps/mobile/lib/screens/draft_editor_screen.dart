@@ -23,6 +23,10 @@ class DraftEditorScreen extends StatelessWidget {
           ..clearSnackBars()
           ..showSnackBar(const SnackBar(content: Text('Nacrt je obrisan.')));
         context.go('/mine');
+      case DraftEditorState(status: DraftEditorStatus.refused, :final error?):
+        context.read<TacticsBloc>().add(TacticsRefreshed());
+        messenger.showSnackBar(SnackBar(content: Text(error.message)));
+        context.go('/mine');
       case DraftEditorState(:final error?):
         messenger.showSnackBar(SnackBar(content: Text(error.message)));
       case DraftEditorState(status: DraftEditorStatus.failed, catalog: _?):

@@ -1,6 +1,6 @@
 part of 'draft_editor_bloc.dart';
 
-enum DraftEditorStatus { editing, saving, saved, deleted, failed }
+enum DraftEditorStatus { editing, saving, saved, deleted, refused, failed }
 
 final class DraftEditorState extends Equatable {
   const DraftEditorState({
@@ -73,8 +73,7 @@ final class DraftEditorState extends Equatable {
   ];
 
   @override
-  String toString() =>
-      'DraftEditorState(${lineup.placements.length} champions, ${items.length} items, ${status.name})';
+  String toString() => 'DraftEditorState(${lineup.placements.length} champions, ${items.length} items, ${status.name})';
 
   bool get dirty =>
       (title ?? '') != (startTitle ?? '') ||

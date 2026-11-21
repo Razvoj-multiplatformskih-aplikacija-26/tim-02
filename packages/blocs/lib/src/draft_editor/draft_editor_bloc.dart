@@ -3,6 +3,8 @@ import 'package:domain/domain.dart';
 import 'package:equatable/equatable.dart';
 import 'package:use_cases/use_cases.dart';
 
+import '../stale.dart';
+
 part 'draft_editor_event.dart';
 part 'draft_editor_state.dart';
 
@@ -78,7 +80,12 @@ final class DraftEditorBloc extends Bloc<DraftEditorEvent, DraftEditorState> {
         case Success(:final value):
           emit(state.copyWith(status: DraftEditorStatus.saved, saved: value));
         case Failure(:final error):
-          emit(state.copyWith(status: DraftEditorStatus.editing, error: error));
+          emit(
+            state.copyWith(
+              status: isStale(error) ? DraftEditorStatus.refused : DraftEditorStatus.editing,
+              error: error,
+            ),
+          );
       }
     } on Exception {
       emit(state.copyWith(status: DraftEditorStatus.failed));
@@ -94,7 +101,12 @@ final class DraftEditorBloc extends Bloc<DraftEditorEvent, DraftEditorState> {
         case Success():
           emit(state.copyWith(status: DraftEditorStatus.deleted));
         case Failure(:final error):
-          emit(state.copyWith(status: DraftEditorStatus.editing, error: error));
+          emit(
+            state.copyWith(
+              status: isStale(error) ? DraftEditorStatus.refused : DraftEditorStatus.editing,
+              error: error,
+            ),
+          );
       }
     } on Exception {
       emit(state.copyWith(status: DraftEditorStatus.failed));

@@ -17,6 +17,10 @@ class TacticEditorScreen extends StatelessWidget {
         context.read<TacticsBloc>().add(TacticSaved(state.tactic));
         messenger.showSnackBar(const SnackBar(content: Text('Taktika je sačuvana.')));
         context.pop();
+      case TacticEditorState(status: TacticEditorStatus.refused, error: final error?):
+        context.read<TacticsBloc>().add(TacticsRefreshed());
+        messenger.showSnackBar(SnackBar(content: Text(error.message)));
+        context.pop();
       case TacticEditorState(error: final error?):
         messenger.showSnackBar(SnackBar(content: Text(error.message)));
       case TacticEditorState(status: TacticEditorStatus.failed, catalog: _?):

@@ -1,6 +1,6 @@
 part of 'tactic_editor_bloc.dart';
 
-enum TacticEditorStatus { editing, saving, saved, failed }
+enum TacticEditorStatus { editing, saving, saved, refused, failed }
 
 final class TacticEditorState extends Equatable {
   const TacticEditorState({

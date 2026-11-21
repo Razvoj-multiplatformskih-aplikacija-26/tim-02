@@ -44,10 +44,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
               for (final t in current.tactics) t.id == saved.id ? saved : t,
             ],
             tierList: current.tierList,
-            actions: {
-              ...current.actions,
-              saved.id: _actionsFor(saved, clock.now()),
-            },
+            actions: {...current.actions, saved.id: _actionsFor(saved, clock.now())},
             filter: current.filter,
             search: current.search,
             tier: current.tier,
@@ -150,7 +147,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
       case Success(:final value):
         await _reload(emit, notice: done(value));
       case Failure(:final error):
-        emit(current.withNotice(TacticRejected(error)));
+        await _reload(emit, notice: TacticRejected(error));
     }
   }
 
