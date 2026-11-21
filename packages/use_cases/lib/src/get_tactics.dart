@@ -7,5 +7,5 @@ final class GetTactics {
 
   final TacticRepository tactics;
 
-  Future<List<Tactic>> call(User user) async => visibleTactics(await tactics.all(), user);
+  Future<List<Tactic>> call(User? user) async => visibleTactics(await tactics.all(), user);
 }

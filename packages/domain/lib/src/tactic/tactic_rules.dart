@@ -23,8 +23,9 @@ abstract final class AccessPolicy {
   static bool canEdit(User user, Tactic tactic) => user.role == Role.admin || tactic.authorId == user.id;
 }
 
-List<Tactic> visibleTactics(Iterable<Tactic> tactics, User user) =>
-    tactics.where((t) => AccessPolicy.canView(user, t)).toList()..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+List<Tactic> visibleTactics(Iterable<Tactic> tactics, User? user) =>
+    tactics.where((t) => user == null ? t.status is Published : AccessPolicy.canView(user, t)).toList()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
 Result<Tactic> archiveTactic(Tactic tactic, {required User by, required DateTime now}) {
   if (!AccessPolicy.canArchive(by, tactic)) return const Failure(NotAllowed());

@@ -7,7 +7,9 @@ const _marko = User(id: UserId('u-marko'), name: 'Marko', role: Role.creator);
 const _tftInsights = User(id: UserId('u-tft-insights'), name: 'TFT Insights', role: Role.creator);
 const _luka = User(id: UserId('u-luka'), name: 'Luka', role: Role.creator);
 const _jovana = User(id: UserId('u-jovana'), name: 'Jovana', role: Role.creator);
-const _ana = UserId('u-ana');
+const _ana = User(id: UserId('u-ana'), name: 'Ana', role: Role.admin);
+
+const seedUsers = [_marko, _tftInsights, _luka, _jovana, _ana];
 
 List<Tactic> seedTactics(DateTime now) {
   DateTime daysAgo(int days) => now.subtract(Duration(days: days));
@@ -33,7 +35,7 @@ List<Tactic> seedTactics(DateTime now) {
   );
 
   Hidden hidden(String reason, int days) =>
-      Hidden(reason: HideReason.parse(reason).valueOrNull!, by: _ana, at: daysAgo(days));
+      Hidden(reason: HideReason.parse(reason).valueOrNull!, by: _ana.id, at: daysAgo(days));
 
   return [
     tactic(

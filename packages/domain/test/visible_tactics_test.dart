@@ -34,6 +34,10 @@ void main() {
       expect(ids(visibleTactics(tactics, visitor)), ['t-3', 't-2']);
     });
 
+    test('shows a visitor who is not signed in only published tactics', () {
+      expect(ids(visibleTactics(tactics, null)), ['t-3', 't-2']);
+    });
+
     test('shows an author every own tactic and the published tactics of others', () {
       expect(ids(visibleTactics(tactics, marko)), ['t-1', 't-3', 't-2']);
     });
