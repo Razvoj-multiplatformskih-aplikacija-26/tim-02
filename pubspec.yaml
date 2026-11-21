@@ -10,6 +10,7 @@ workspace:
   - apps/backoffice
   - packages/domain
   - packages/demo_data
+  - packages/api_contract
   - packages/use_cases
   - packages/blocs
   - packages/ui
