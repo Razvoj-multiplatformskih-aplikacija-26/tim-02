@@ -237,4 +237,40 @@ void main() {
       isA<TacticsLoaded>().having((s) => s.visible.map((t) => t.id), 'visible', [const TacticId('t-1')]),
     ],
   );
+
+  blocTest<TacticsBloc, TacticsState>(
+    'TacticsBloc shows a signed-out visitor only the comps and loads my tactics once I sign in',
+    build: () {
+      final tactics = FakeTactics(
+        tactics: [
+          tactic('t-1', marko, Published(at: now)),
+          tactic('t-2', marko, const Draft()),
+        ],
+      );
+      return TacticsBloc(
+        getTactics: GetTactics(tactics: tactics),
+        getTierList: GetTierList(tactics: tactics),
+        changeStatus: ChangeTacticStatus(tactics: tactics, clock: FixedClock(now)),
+        placeTactic: PlaceTactic(tactics: tactics),
+        clock: FixedClock(now),
+      );
+    },
+    act: (bloc) async {
+      bloc.add(const TacticsUserChanged(null));
+      await bloc.stream.firstWhere((s) => s is TacticsLoaded);
+      bloc.add(const TacticsUserChanged(marko));
+    },
+    expect: () => [
+      const TacticsLoading(),
+      isA<TacticsLoaded>()
+          .having((s) => s.tactics.map((t) => t.id), 'tactics', [const TacticId('t-1')])
+          .having((s) => s.mine, 'mine', isEmpty)
+          .having((s) => s.actionsFor(const TacticId('t-1')), 'actions', isEmpty),
+      const TacticsLoading(),
+      isA<TacticsLoaded>().having((s) => s.mine.map((t) => t.id), 'mine', [
+        const TacticId('t-1'),
+        const TacticId('t-2'),
+      ]),
+    ],
+  );
 }

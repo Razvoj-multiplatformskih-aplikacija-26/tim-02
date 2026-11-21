@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ui/ui.dart';
 
 import 'debug_menu.dart';
+import 'sign_in_screen.dart';
 import 'tactic_detail_screen.dart';
 
 class CompsScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class CompsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('KOMPOZICIJE'), actions: const [if (kDebugMode) DebugMenu()]),
+      appBar: AppBar(title: const Text('KOMPOZICIJE'), actions: const [if (kDebugMode) DebugMenu(), AccountButton()]),
       body: RefreshIndicator(
         onRefresh: () => _refresh(context.read<TacticsBloc>()),
         child: BlocBuilder<TacticsBloc, TacticsState>(

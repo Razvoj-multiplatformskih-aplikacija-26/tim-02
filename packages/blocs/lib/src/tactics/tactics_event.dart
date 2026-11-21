@@ -28,6 +28,12 @@ final class TacticDeleted extends TacticsEvent {
   final TacticId id;
 }
 
+final class TacticsUserChanged extends TacticsEvent {
+  const TacticsUserChanged(this.user);
+
+  final User? user;
+}
+
 final class TacticsFilterChanged extends TacticsEvent {
   const TacticsFilterChanged(this.filter);
 

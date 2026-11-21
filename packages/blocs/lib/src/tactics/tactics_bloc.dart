@@ -15,8 +15,13 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
     required this.changeStatus,
     required this.placeTactic,
     required this.clock,
-    required this.user,
+    this._user,
   }) : super(const TacticsLoading()) {
+    on<TacticsUserChanged>((event, emit) async {
+      _user = event.user;
+      emit(const TacticsLoading());
+      await _reload(emit);
+    });
     on<TacticsRequested>((event, emit) async {
       emit(const TacticsLoading());
       await _reload(emit);
@@ -33,7 +38,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
         final saved = event.tactic;
         emit(
           TacticsLoaded(
-            user: user,
+            user: _user,
             tactics: [
               if (current.tactic(saved.id) == null) saved,
               for (final t in current.tactics) t.id == saved.id ? saved : t,
@@ -41,7 +46,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
             tierList: current.tierList,
             actions: {
               ...current.actions,
-              saved.id: allowedActions(saved, user, now: clock.now()),
+              saved.id: _actionsFor(saved, clock.now()),
             },
             filter: current.filter,
             search: current.search,
@@ -55,7 +60,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
       if (state case final TacticsLoaded current) {
         emit(
           TacticsLoaded(
-            user: user,
+            user: _user,
             tactics: [
               for (final t in current.tactics)
                 if (t.id != event.id) t,
@@ -99,7 +104,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
       (event, emit) => _act(
         emit,
         event.id,
-        () => changeStatus(id: event.id, action: event.action, by: user, reason: event.reason),
+        (by) => changeStatus(id: event.id, action: event.action, by: by, reason: event.reason),
         (tactic) => TacticChanged(event.action, tactic),
       ),
     );
@@ -107,7 +112,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
       (event, emit) => _act(
         emit,
         event.id,
-        () => placeTactic(id: event.id, tier: event.tier, by: user),
+        (by) => placeTactic(id: event.id, tier: event.tier, by: by),
         (_) => TacticPlaced(event.tier),
       ),
     );
@@ -122,20 +127,21 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
   final ChangeTacticStatus changeStatus;
   final PlaceTactic placeTactic;
   final Clock clock;
-  final User user;
+  User? _user;
 
   Future<void> _act<T>(
     Emitter<TacticsState> emit,
     TacticId id,
-    Future<Result<T>> Function() request,
+    Future<Result<T>> Function(User by) request,
     TacticsNotice Function(T value) done,
   ) async {
     final current = state;
-    if (current is! TacticsLoaded || current.isBusy) return;
+    final by = _user;
+    if (current is! TacticsLoaded || current.isBusy || by == null) return;
     emit(current.withInFlight(id));
     final Result<T> result;
     try {
-      result = await request();
+      result = await request(by);
     } on Exception catch (cause) {
       emit(current.withNotice(TacticRequestFailed(cause)));
       return;
@@ -148,14 +154,21 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
     }
   }
 
+  Set<TacticAction> _actionsFor(Tactic tactic, DateTime now) => switch (_user) {
+    final user? => allowedActions(tactic, user, now: now),
+    null => const {},
+  };
+
   Future<void> _reload(Emitter<TacticsState> emit, {TacticsNotice? notice}) async {
     final previous = state;
     final filter = previous is TacticsLoaded ? previous.filter : null;
     final search = previous is TacticsLoaded ? previous.search : '';
     final tier = previous is TacticsLoaded ? previous.tier : null;
     final selectedId = previous is TacticsLoaded ? previous.selectedId : null;
+    final user = _user;
     try {
       final tactics = await getTactics(user);
+      if (user != _user) return;
       if (tactics.isEmpty) {
         emit(const TacticsEmpty());
         return;
@@ -166,7 +179,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
           user: user,
           tactics: tactics,
           tierList: await getTierList(),
-          actions: {for (final t in tactics) t.id: allowedActions(t, user, now: now)},
+          actions: {for (final t in tactics) t.id: _actionsFor(t, now)},
           filter: filter,
           search: search,
           tier: tier,
@@ -175,7 +188,7 @@ final class TacticsBloc extends Bloc<TacticsEvent, TacticsState> {
         ),
       );
     } on Exception catch (cause) {
-      emit(TacticsFailure(cause));
+      if (user == _user) emit(TacticsFailure(cause));
     }
   }
 }

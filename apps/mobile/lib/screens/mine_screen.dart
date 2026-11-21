@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ui/ui.dart';
 
 import 'debug_menu.dart';
+import 'sign_in_screen.dart';
 import 'tactic_detail_screen.dart';
 
 class MineScreen extends StatelessWidget {
@@ -48,41 +49,77 @@ class MineScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final signedIn = context.watch<SessionBloc>().state is SignedIn;
     return Scaffold(
       appBar: AppBar(
         title: Text(archived ? 'ARHIVIRANE' : 'MOJE KOMPOZICIJE'),
         actions: [
-          IconButton(
-            isSelected: archived,
-            icon: const Icon(Icons.archive_outlined),
-            selectedIcon: const Icon(Icons.archive),
-            tooltip: 'Arhivirane',
-            onPressed: () => archived ? context.pop() : context.push('/mine?archived=1'),
-          ),
-          if (kDebugMode) const DebugMenu(),
+          if (signedIn)
+            IconButton(
+              isSelected: archived,
+              icon: const Icon(Icons.archive_outlined),
+              selectedIcon: const Icon(Icons.archive),
+              tooltip: 'Arhivirane',
+              onPressed: () => archived ? context.pop() : context.push('/mine?archived=1'),
+            ),
+          if (kDebugMode && signedIn) const DebugMenu(),
+          const AccountButton(),
         ],
       ),
-      floatingActionButton: archived
+      floatingActionButton: archived || !signedIn
           ? null
           : FloatingActionButton.extended(
+              heroTag: null,
               onPressed: () => context.push('/drafts/new'),
               icon: const Icon(Icons.add),
               label: const Text('Novi nacrt'),
             ),
-      body: RefreshIndicator(
-        onRefresh: () => _refresh(context.read<TacticsBloc>()),
-        child: BlocBuilder<TacticsBloc, TacticsState>(
-          builder: (context, state) => switch (state) {
-            TacticsFailure(:final cause) => FailureView(
-              cause: cause,
-              onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
+      body: !signedIn
+          ? const _SignedOutView()
+          : RefreshIndicator(
+              onRefresh: () => _refresh(context.read<TacticsBloc>()),
+              child: BlocBuilder<TacticsBloc, TacticsState>(
+                builder: (context, state) => switch (state) {
+                  TacticsFailure(:final cause) => FailureView(
+                    cause: cause,
+                    onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
+                  ),
+                  TacticsLoading() => const LoadingView(),
+                  _ => switch (_sections(context, state is TacticsLoaded ? state.mine : const [])) {
+                    [] => EmptyView(
+                      title: archived ? 'Nemate arhiviranih kompozicija.' : 'Još nemate svojih kompozicija.',
+                    ),
+                    final sections => ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: sections),
+                  },
+                },
+              ),
             ),
-            TacticsLoading() => const LoadingView(),
-            _ => switch (_sections(context, state is TacticsLoaded ? state.mine : const [])) {
-              [] => EmptyView(title: archived ? 'Nemate arhiviranih kompozicija.' : 'Još nemate svojih kompozicija.'),
-              final sections => ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: sections),
-            },
-          },
+    );
+  }
+}
+
+class _SignedOutView extends StatelessWidget {
+  const _SignedOutView();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.person_outline, size: 56, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 20),
+            Text(
+              'Prijavite se da biste videli i čuvali svoje nacrte.',
+              style: theme.textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: () => context.push('/login'), child: const Text('Prijavi se')),
+          ],
         ),
       ),
     );

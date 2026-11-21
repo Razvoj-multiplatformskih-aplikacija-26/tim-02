@@ -81,7 +81,8 @@ class TacticDetailScreen extends StatelessWidget {
               icon: const Icon(Icons.archive_outlined),
               label: Text(TacticAction.archive.label),
             );
-    } else if (tactic.authorId != state.user.id && tactic.status is Published && tactic.variants.isNotEmpty) {
+    } else if (state.user case final user?
+        when tactic.authorId != user.id && tactic.status is Published && tactic.variants.isNotEmpty) {
       final query = {'from': id.value, if (variant > 0) 'variant': '$variant'};
       button = FilledButton.tonalIcon(
         onPressed: () => context.push(Uri(path: '/drafts/new', queryParameters: query).toString()),

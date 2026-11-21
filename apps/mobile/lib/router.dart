@@ -9,12 +9,14 @@ import 'screens/comps_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/draft_editor_screen.dart';
 import 'screens/mine_screen.dart';
+import 'screens/sign_in_screen.dart';
 import 'screens/tactic_detail_screen.dart';
 
 GoRouter createRouter() {
   return GoRouter(
     initialLocation: '/',
     routes: [
+      GoRoute(path: '/login', builder: (context, state) => const SignInScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => HomeShell(shell: shell),
         branches: [
@@ -41,6 +43,7 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/drafts/new',
+        redirect: (context, state) => context.read<SessionBloc>().state is SignedIn ? null : '/mine',
         builder: (context, state) {
           final query = state.uri.queryParameters;
           final tactic = _tactic(context, query['from']);
@@ -53,7 +56,10 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/drafts/:id',
-        redirect: (context, state) => _tactic(context, state.pathParameters['id']) == null ? '/mine' : null,
+        redirect: (context, state) =>
+            context.read<SessionBloc>().state is SignedIn && _tactic(context, state.pathParameters['id']) != null
+            ? null
+            : '/mine',
         builder: (context, state) =>
             _draftEditor(context, DraftEditorState.edit(_tactic(context, state.pathParameters['id'])!)),
       ),
@@ -73,7 +79,7 @@ Widget _draftEditor(BuildContext context, DraftEditorState initial) {
       saveDraft: dependencies.saveDraft,
       deleteDraft: dependencies.deleteDraft,
       getCatalog: dependencies.getCatalog,
-      user: dependencies.user,
+      user: (context.read<SessionBloc>().state as SignedIn).user,
       initial: initial,
     )..add(const DraftEditorStarted()),
     child: const DraftEditorScreen(),

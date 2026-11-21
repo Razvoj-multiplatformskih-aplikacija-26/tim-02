@@ -44,7 +44,7 @@ final class TacticsLoaded extends TacticsState {
     this.notice,
   });
 
-  final User user;
+  final User? user;
   final List<Tactic> tactics;
   final TierList tierList;
   final Map<TacticId, Set<TacticAction>> actions;
@@ -81,7 +81,7 @@ final class TacticsLoaded extends TacticsState {
     ];
   }
 
-  List<Tactic> get mine => tactics.where((t) => t.authorId == user.id).toList();
+  List<Tactic> get mine => tactics.where((t) => t.authorId == user?.id).toList();
 
   Map<Tier, List<Tactic>> get comps => tierList.comps(tactics);
 
@@ -96,14 +96,14 @@ final class TacticsLoaded extends TacticsState {
 
   Set<TacticAction> actionsFor(TacticId id) => actions[id] ?? const {};
 
-  bool canEdit(TacticId id) => switch (tactic(id)) {
-    final tactic? => mayEdit(tactic, user),
-    null => false,
+  bool canEdit(TacticId id) => switch ((tactic(id), user)) {
+    (final tactic?, final user?) => mayEdit(tactic, user),
+    _ => false,
   };
 
-  Set<Tier?> placeableTiersFor(TacticId id) => switch (tactic(id)) {
-    final tactic? => placeableTiers(tierList, tactic, tactics, user),
-    null => const {},
+  Set<Tier?> placeableTiersFor(TacticId id) => switch ((tactic(id), user)) {
+    (final tactic?, final user?) => placeableTiers(tierList, tactic, tactics, user),
+    _ => const {},
   };
 
   TacticsLoaded withFilter(TacticStatusKind? filter) => TacticsLoaded(
