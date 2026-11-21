@@ -11,18 +11,18 @@ Aplikacija za Teamfight Tactics koja omogućava pregled statistike šampiona i p
 
 ## Zahtevi za temu
 
-1. **Uloge.** Korisnik (User) pravi i čuva lične postave, pregleda statistiku i preuzima objavljene taktike. Kreator ima iste mogućnosti, a kroz backoffice dodatno kreira, uređuje i samostalno objavljuje svoje taktike. Administrator kroz isti backoffice dodeljuje i oduzima kreatorska ovlašćenja i moderira sve javne taktike. Pregled javnog sadržaja i čuvanje ličnih postava na uređaju ne zahtevaju nalog.
+1. **Uloge.** Korisnik (User) u mobilnoj aplikaciji pravi i čuva lične postave, pregleda statistiku i preuzima objavljene taktike. Kreator radi u obe aplikacije: u mobilnoj ima sve mogućnosti korisnika i uz to objavljuje i arhivira svoje taktike, a u backoffice-u radi sa tabelom svojih taktika, uređuje ih, objavljuje i arhivira. Administrator radi u backoffice-u: dodeljuje i oduzima kreatorska ovlašćenja, moderira sve javne taktike i raspoređuje ih po tier listi. Pregled javnog sadržaja i čuvanje ličnih postava na uređaju ne zahtevaju nalog.
 2. **Stanja.** Taktika ima četiri stanja: nacrt, objavljena, sakrivena i arhivirana. Kreator objavljuje svoj nacrt i može da arhivira svoju taktiku. Administrator može da sakrije objavljenu taktiku uz obrazloženje i da je ponovo učini javnom nakon ispravki. Sakrivenu taktiku kreator može da uređuje, ali ne može samostalno da je ponovo objavi. Arhivirana taktika više nije javno dostupna.
-3. **Pravila.** Kreator uređuje i objavljuje samo svoje taktike. Postava ne može imati dva šampiona na istom polju niti više od tri predmeta po šampionu. Objavljivanje zahteva važeće kreatorsko ovlašćenje koje dodeljuje administrator. Ako drugi korisnik sa administratorskim ovlašćenjima sakrije taktiku, njen autor ne može ponovnim objavljivanjem da zaobiđe tu odluku; vraćanje u javni prikaz zahteva administratorsku odluku. Time dostupnost taktike zavisi i od podataka koje unosi drugi korisnik, a server konačno proverava ovlašćenja, pravila i dozvoljene promene stanja.
+3. **Pravila.** Kreator uređuje i objavljuje samo svoje taktike. Postava ne može imati dva šampiona na istom polju niti više od tri predmeta po šampionu. Objavljivanje zahteva važeće kreatorsko ovlašćenje koje dodeljuje administrator. Ako administrator sakrije taktiku, njen autor ne može ponovnim objavljivanjem da zaobiđe tu odluku; vraćanje u javni prikaz zahteva administratorsku odluku. Tier S na tier listi patcha prima najviše dve kompozicije. Ovo pravilo zavisi od rasporeda koji prave i drugi administratori, pa o njemu konačno odlučuje server: kada dva administratora istovremeno pokušaju da zauzmu poslednje mesto, prolazi samo jedan, a drugi dobija poruku da je tier pun. Server konačno proverava i ovlašćenja, pravila i dozvoljene promene stanja.
 4. **Rad bez mreže.** Korisnik kreira, menja, preimenuje i briše lične postave i dodeljuje predmete šampionima bez interneta. Promene se čuvaju na uređaju i ostaju dostupne nakon ponovnog pokretanja aplikacije. Kreator može, kada postoji veza, da prenese sačuvanu postavu u serverski nacrt i nastavi uređivanje u backoffice aplikaciji.
-5. **Posao za osoblje.** Kreatori u backoffice aplikaciji rade sa tabelom svojih taktika, pretragom i filtriranjem po stanju, uređuju raspored šampiona, predmete i opis i objavljuju sadržaj. Administratori imaju pregled svih taktika, mogućnost skrivanja sadržaja uz obrazloženje i upravljanje kreatorskim ovlašćenjima. Pregled većeg broja taktika i uređivanje postave i opisa prilagođeni su većem ekranu.
+5. **Posao za osoblje.** Kreatori u backoffice aplikaciji rade sa tabelom svojih taktika, pretragom i filtriranjem po stanju, uređuju raspored šampiona, predmete i opis i objavljuju i arhiviraju svoje taktike. Administratori imaju pregled svih taktika, mogućnost skrivanja sadržaja uz obrazloženje, raspoređivanje objavljenih taktika po tier listi i upravljanje kreatorskim ovlašćenjima. Pregled većeg broja taktika i uređivanje postave i opisa prilagođeni su većem ekranu.
 6. **Javni sadržaj.** Objavljene taktike sa opisima, postavama i preporučenim predmetima dostupne su bez prijave, na zasebnim stranicama koje pretraživači mogu da indeksiraju. Javni pregled statistike omogućava filtriranje po šampionu, predmetu i broju zvezdica, uz prikaz broja posmatranja, prosečnog plasmana i učestalosti završavanja među prva četiri ili na prvom mestu.
 
 ## Delovi sistema
 
 | Deo | Korisnici | Tehnologija | Platforme |
 | --- | --- | --- | --- |
-| Mobilna aplikacija | posetioci, registrovani korisnici | Flutter | Android |
+| Mobilna aplikacija | posetioci, korisnici, kreatori | Flutter | Android |
 | Backoffice | kreatori, administratori | Flutter | Windows, veb |
 | Javni veb | svi posetioci | Jaspr | pregledač |
 | Server | ostali delovi sistema | Relic, PostgreSQL | Linux |
@@ -43,28 +43,81 @@ flowchart LR
 
 ## Stanje projekta
 
-Završena je prva kontrolna tačka: mobilna aplikacija i backoffice rade nad istim domenskim paketom, sa podacima u memoriji. Server, prijava i rad bez mreže dolaze u narednim tačkama.
+Završena je druga kontrolna tačka: mobilna aplikacija i backoffice rade nad serverom, sa prijavom i ulogama, a server ponovo proverava ista pravila iz domenskog paketa. Rad bez mreže, javni veb i statistika iz Riot API-ja dolaze u narednim tačkama.
 
-- **Mobilna aplikacija** (Android), kao kreator Marko, koji ima sve mogućnosti korisnika i uz to vidi svoje taktike u svim stanjima:
-  - **Kompozicije:** javna tier lista patcha 18.5c (S, A, B, C, Situaciona) sa objavljenim taktikama svih kreatora.
-  - **Moje kompozicije:** Objavljene (ono što je javno) i Nacrti (taktike koje još nisu objavljene); arhivirane su iza prekidača u zaglavlju. Nacrt uvek ima postavu, a saveti nisu obavezni.
+- **Server** (Relic i PostgreSQL, podiže se sa Docker Compose): čuva taktike, tier listu patcha 18.5c, katalog šampiona i predmeta i naloge. Svaki poziv koji menja podatke ide kroz iste slučajeve korišćenja kao u aplikacijama, a pozivaoca zna samo iz prijave koju je sam izdao.
+- **Mobilna aplikacija** (Android):
+  - **Kompozicije:** javna tier lista patcha 18.5c (S, A, B, C, Situaciona) sa objavljenim taktikama svih kreatora; dostupna i bez prijave, kao i detalj objavljene taktike.
+  - **Moje kompozicije:** posle prijave Objavljene i Nacrti, a arhivirane iza prekidača u zaglavlju. Bez prijave ekran poziva na prijavu.
   - Detalj taktike sa varijantama, ranom i kasnom tablom, fleksibilnim jedinicama, prioritetom predmeta i savetima po fazama; arhiviranje svoje taktike uz potvrdu, a tuđa objavljena taktika može da se sačuva kao nacrt.
-  - Uređivač nacrta sa tablom na kojoj se šampioni postavljaju i prevlače; proverava pravila (najviše tri predmeta po šampionu, jedan šampion po polju, tabla ne sme biti prazna) i javlja greške na srpskom. Nacrt može i da se obriše.
-  - Povlačenje za osvežavanje; u razvojnoj verziji meni za simulaciju greške i praznog odgovora.
-- **Backoffice** (Windows i veb), kao administrator Ana:
-  - **Taktike:** tabela svih taktika sa filterom po stanju i po tieru, pretragom po naslovu i autoru i bočnim panelom; skrivanje uz obrazloženje i vraćanje u javni prikaz.
-  - **Uređivanje:** naslov, opis i, za svaku varijantu, rana i kasna tabla (šampion, zvezdice i do tri predmeta po polju; jedinice se prevlače po tabli), fleksibilne jedinice, prioritet predmeta i saveti. Kasna tabla ne sme da ostane prazna.
-  - **Tier lista:** samo administrator premešta objavljenu taktiku u drugi tier ili je skida sa liste.
-  - Rad sa tastaturom (↑ ↓, H, R, E, Esc); adresa čuva filtere, pretragu i izabranu taktiku, a u uskom prozoru tabela postaje lista sa panelom ispod.
-  - Kreiranje i objavljivanje taktika kao kreator i dodela kreatorskih ovlašćenja dolaze sa prijavom, kada backoffice dobije više korisnika; pravila objavljivanja već su u domenskom paketu.
-- **Domenski paket:** stanja taktike i dozvoljeni prelazi, pravila pristupa (autor uređuje svoje taktike, administrator sve, a taktiku koju je administrator sakrio autor ne može ponovo da objavi), izračunavanje nad listom svih taktika koje određuje šta ko vidi i šta je na tier listi, tako da sakrivena taktika nestaje iz javnog prikaza, pravila postave i pravilo da svaka taktika ima postavu.
+  - Uređivač nacrta sa tablom na kojoj se šampioni postavljaju i prevlače; proverava pravila i javlja greške na srpskom.
+  - Prijava ostaje posle restarta (Keystore), ističe posle vremena iz podešavanja servera i briše se odjavom. Administrator ne može da se prijavi u mobilnu aplikaciju.
+- **Backoffice** (Windows i veb), posle prijave kreatora ili administratora:
+  - **Administrator:** tabela svih taktika sa filterom po stanju i po tieru, pretragom i bočnim panelom; skrivanje uz obrazloženje, vraćanje u javni prikaz, uređivanje i raspoređivanje po tier listi.
+  - **Kreator:** tabela samo njegovih taktika u svim stanjima; uređivanje, objavljivanje i arhiviranje.
+  - Osveži i F5 ponovo učitavaju podatke, pa se promena iz mobilne aplikacije vidi posle osvežavanja. Korisnik mobilne aplikacije ne može da se prijavi u backoffice.
+- **Pravilo o kome odlučuje server:** tier S prima najviše dve kompozicije. Server ga proverava u transakciji koja zaključa red patcha, pa od dva istovremena pokušaja prolazi samo jedan. Drugi dobija poruku „Tier S je pun (najviše 2 kompozicije).“ i ponovo učitan raspored.
 
-### Pokretanje
+### Zavisno od teme
 
-U korenu repozitorijuma:
+| Pitanje | Naš izbor | Odbačeno |
+| --- | --- | --- |
+| Vrsta pravila | Ograničen broj: tier S prima najviše 2 kompozicije | Jedan prelaz iz stanja (sakrivanje protiv arhiviranja), koji ostaje kao dodatna zaštita |
+| Ko čuva pravilo | Server: transakcija zaključa red patcha (`FOR UPDATE`) i poziva isti `placeTactic` iz domena | Okidač ili ograničenje u bazi (pravilo dvaput, van domena); brava u memoriji servera; provera bez brave |
+| Šta vidi zakasneli | 409 `tier-full` sa granicom, poruka „Tier S je pun (najviše 2 kompozicije).“ i ponovo učitan raspored | Tiho prepisivanje; izbacivanje najstarije kompozicije iz S |
+| Šta vidi koja uloga | Bez prijave i korisnik: objavljene; kreator: i svoje; administrator: sve | Sve svima, uz filtriranje na klijentu |
+| Vreme i stanja na mreži | ISO-8601 u UTC; stanje kao objekat sa `kind` i podacima | Unix sekunde; stanje kao goli string |
+| Deo velike liste | Cela lista (oko 30 taktika) | `offset` / `limit`, koji dolazi sa javnim vebom |
+| Tuđa promena | Osvežavanje (povlačenje, Osveži i F5, posle svake akcije) | WebSocket ili SSE |
+| Fotografije i fajlovi | Nema ih; ikonice su lokalne | — |
+| Pregledač | CORS i httpOnly cookie na serveru | Token u `localStorage` |
+| Sesija | Potpisan JWT; odjava briše token i cookie, a token ističe posle `SESSION_TTL_MINUTES` | Tabela sesija sa opozivom |
+| Bez prijave | Kompozicije i detalj objavljene taktike | Prijava za sve |
+| Ko menja tuđi zapis | Administrator (sakriva, vraća, raspoređuje i uređuje dok taktika nije arhivirana); kreator samo svoje | Kreatori menjaju i tuđe taktike |
 
+## Pokretanje
+
+Potrebni su Docker i Flutter 3.47.
+
+### Baza i server
+
+Iz korena repozitorijuma:
+
+```sh
+cp .env.example .env    # Windows: copy .env.example .env
+docker compose up -d --build
 ```
-flutter pub get
+
+| Servis | Šta radi | Adresa |
+| --- | --- | --- |
+| `db` | PostgreSQL 17 | `127.0.0.1:5436` |
+| `migrate` | dbmate primeni migracije iz `apps/server/migrations`, pa izlazi | — |
+| `server` | server u Dartu na Relic-u, slika iz `apps/server/Dockerfile` | http://localhost:8080 |
+
+Kada je baza prazna, server upisuje početne podatke: 30 taktika, tier listu patcha 18.5c, katalog i naloge. Provera: `curl localhost:8080/health` (odgovor `ok`; u PowerShell-u `curl.exe`). `docker compose down -v` briše bazu, pa sledeći `up -d` kreće od nule. Testovi servera traže pokrenutu bazu: u `apps/server` pokrenuti `dart test`.
+
+### Aplikacije
+
+U korenu repozitorijuma `flutter pub get`, pa svaka aplikacija u svom terminalu:
+
+```sh
+cd apps/mobile
+flutter run
 ```
 
-Mobilna aplikacija se pokreće sa `flutter run` u `apps/mobile`, a backoffice sa `flutter run -d windows` ili `flutter run -d chrome` u `apps/backoffice`. Testovi se pokreću sa `dart test` u paketima i `flutter test` u aplikacijama. Ikonice šampiona i predmeta nisu deo repozitorijuma, pa aplikacije bez njih prikazuju imena.
+```sh
+cd apps/backoffice
+flutter run -d windows    # ili -d chrome --web-port 8081
+```
+
+Android emulator nalazi server na `10.0.2.2:8080`. Telefon preko USB-a radi uz `adb reverse tcp:8080 tcp:8080` i `flutter run --dart-define=SERVER_URL=http://localhost:8080`. Pregledač sme da zove server samo sa adrese iz `CORS_ORIGINS` u `.env` (`http://localhost:8081`). Testovi se pokreću sa `dart test` u paketima i `flutter test` u aplikacijama. Ikonice šampiona i predmeta nisu deo repozitorijuma, pa aplikacije bez njih prikazuju imena.
+
+### Demo nalozi
+
+Lozinka za sve naloge je vrednost `DEMO_PASSWORD` iz `.env` (`tft-demo`).
+
+| Nalog | Ime | Uloga | Aplikacija |
+| --- | --- | --- | --- |
+| `korisnik1`, `korisnik2` | Petar, Mina | korisnik | mobilna |
+| `marko`, `tftinsights`, `luka`, `jovana` | Marko, TFT Insights, Luka, Jovana | kreator | mobilna i backoffice |
+| `ana`, `admin2` | Ana, Ivana | administrator | backoffice |
