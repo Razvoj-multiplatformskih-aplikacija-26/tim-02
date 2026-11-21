@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:use_cases/use_cases.dart' show LogIn;
 
 import '../text/failures.dart';
+import 'brand_logo.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({
@@ -92,18 +93,39 @@ class _LoginFormState extends State<_LoginForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const Center(child: BrandLogo()),
+                const SizedBox(height: 20),
                 Semantics(
                   header: true,
                   child: Text('TFT INSIGHTS', style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 4),
+                Text(
+                  'Prijavite se svojim nalogom.',
+                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
                 if (message != null) ...[
                   Semantics(
                     liveRegion: true,
-                    child: Text(
-                      message,
-                      style: TextStyle(color: theme.colorScheme.error),
-                      textAlign: TextAlign.center,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.error.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: theme.colorScheme.error),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(message, style: TextStyle(color: theme.colorScheme.error)),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -113,9 +135,13 @@ class _LoginFormState extends State<_LoginForm> {
                   enabled: !busy,
                   autofillHints: const [AutofillHints.username],
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Korisničko ime'),
+                  decoration: InputDecoration(
+                    labelText: 'Korisničko ime',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _password,
                   enabled: !busy,
@@ -125,6 +151,8 @@ class _LoginFormState extends State<_LoginForm> {
                   onSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
                     labelText: 'Lozinka',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     suffixIcon: IconButton(
                       onPressed: () => setState(() => _passwordShown = !_passwordShown),
                       tooltip: _passwordShown ? 'Sakrij lozinku' : 'Prikaži lozinku',
@@ -136,6 +164,7 @@ class _LoginFormState extends State<_LoginForm> {
                 ListenableBuilder(
                   listenable: Listenable.merge([_username, _password]),
                   builder: (context, _) => FilledButton(
+                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
                     onPressed: busy || !_filled ? null : _submit,
                     child: busy
                         ? const SizedBox.square(

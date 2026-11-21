@@ -39,7 +39,7 @@ class AccountButton extends StatelessWidget {
         user: user,
         onLogOut: () => context.read<SessionBloc>().add(const SessionLogOutRequested()),
       ),
-      SignedOut() => TextButton(onPressed: () => context.push('/login'), child: const Text('Prijavi se')),
+      SignedOut() => TextButton(onPressed: () => signIn(context), child: const Text('Prijavi se')),
       SessionUnknown() => const SizedBox.shrink(),
     };
   }
@@ -52,4 +52,11 @@ void retryTactics(BuildContext context) {
   } else {
     context.read<TacticsBloc>().add(const TacticsRequested());
   }
+}
+
+Future<void> signIn(BuildContext context) async {
+  final router = GoRouter.of(context);
+  final session = context.read<SessionBloc>();
+  await router.push('/login');
+  if (session.state is SignedIn) router.go('/');
 }

@@ -115,7 +115,7 @@ class _SignedOutView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: () => context.push('/login'), child: const Text('Prijavi se')),
+            FilledButton(onPressed: () => signIn(context), child: const Text('Prijavi se')),
           ],
         ),
       ),

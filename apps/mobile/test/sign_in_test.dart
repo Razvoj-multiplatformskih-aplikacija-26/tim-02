@@ -18,7 +18,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a visitor sees the comps, signs in from Moje kompozicije and finds the drafts there', (tester) async {
+  testWidgets('a visitor signs in from Moje kompozicije, lands on Kompozicije and finds the drafts', (tester) async {
     await pumpApp(tester, signedIn: false);
     expect(find.text('Ahri Spellweaver'), findsOneWidget);
 
@@ -30,6 +30,8 @@ void main() {
     await tester.pumpAndSettle();
     await logIn(tester);
 
+    expect(find.text('KOMPOZICIJE'), findsOneWidget);
+    await openTab(tester, 'Moje kompozicije');
     expect(find.text('MOJE KOMPOZICIJE'), findsOneWidget);
     expect(find.text('AP brzi nivo 9 sa Alune'), findsOneWidget);
     expect(find.text('Novi nacrt'), findsOneWidget);

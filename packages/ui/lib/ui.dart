@@ -4,6 +4,7 @@ export 'src/text/serbian.dart';
 export 'src/theme.dart';
 export 'src/widgets/account_menu.dart';
 export 'src/widgets/archive_dialog.dart';
+export 'src/widgets/brand_logo.dart';
 export 'src/widgets/catalog_picker.dart';
 export 'src/widgets/champion_hex.dart';
 export 'src/widgets/champion_tile.dart';
