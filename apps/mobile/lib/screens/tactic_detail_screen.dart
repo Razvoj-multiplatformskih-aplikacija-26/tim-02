@@ -81,11 +81,10 @@ class TacticDetailScreen extends StatelessWidget {
               icon: const Icon(Icons.archive_outlined),
               label: Text(TacticAction.archive.label),
             );
-    } else if (state.user case final user?
-        when tactic.authorId != user.id && tactic.status is Published && tactic.variants.isNotEmpty) {
+    } else if (tactic.authorId != state.user?.id && tactic.status is Published && tactic.variants.isNotEmpty) {
       final query = {'from': id.value, if (variant > 0) 'variant': '$variant'};
       button = FilledButton.tonalIcon(
-        onPressed: () => context.push(Uri(path: '/drafts/new', queryParameters: query).toString()),
+        onPressed: () => _saveAsDraft(context, tactic, Uri(path: '/drafts/new', queryParameters: query).toString()),
         icon: const Icon(Icons.bookmark_add_outlined),
         label: const Text('Sačuvaj kao nacrt'),
       );
@@ -99,4 +98,17 @@ class TacticDetailScreen extends StatelessWidget {
 Future<void> _confirmArchive(BuildContext context, Tactic tactic) async {
   final bloc = context.read<TacticsBloc>();
   if (await confirmArchive(context, tactic)) bloc.add(TacticActionRequested(tactic.id, TacticAction.archive));
+}
+
+Future<void> _saveAsDraft(BuildContext context, Tactic tactic, String path) async {
+  final session = context.read<SessionBloc>();
+  final tactics = context.read<TacticsBloc>();
+  if (session.state is! SignedIn) {
+    await context.push('/login');
+    if (!context.mounted) return;
+  }
+  if (session.state case SignedIn(:final user) when user.id != tactic.authorId) {
+    if (tactics.state is TacticsLoading) await tactics.stream.firstWhere((state) => state is! TacticsLoading);
+    if (context.mounted) await context.push(path);
+  }
 }

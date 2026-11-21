@@ -33,6 +33,24 @@ void main() {
     expect(find.text('Novi nacrt'), findsOneWidget);
   });
 
+  testWidgets('a visitor signs in to save another creator\'s tactic as a draft and lands in the editor', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    await pumpApp(tester, signedIn: false);
+    await tester.tap(find.text('Draven na nivou 9'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sačuvaj kao nacrt'));
+    await tester.pumpAndSettle();
+    await logIn(tester);
+
+    expect(find.text('NOVI NACRT'), findsOneWidget);
+    expect(find.text('Draven na nivou 9'), findsOneWidget);
+  });
+
   testWidgets('logging out hides my drafts again', (tester) async {
     await pumpApp(tester);
     await openTab(tester, 'Moje kompozicije');
