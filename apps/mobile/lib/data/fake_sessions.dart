@@ -8,6 +8,7 @@ final class FakeSessions implements SessionRepository {
 
   final User _user;
   User? _current;
+  int failingRequests = 0;
   final _expirations = StreamController<void>.broadcast();
 
   void expire() {
@@ -20,7 +21,13 @@ final class FakeSessions implements SessionRepository {
       _current = password.isEmpty ? null : _user;
 
   @override
-  Future<User?> current() async => _current;
+  Future<User?> current() async {
+    if (failingRequests > 0) {
+      failingRequests--;
+      throw const RepositoryException('Simulated outage', failure: RepositoryFailure.unreachable);
+    }
+    return _current;
+  }
 
   @override
   Future<void> logOut() async => _current = null;

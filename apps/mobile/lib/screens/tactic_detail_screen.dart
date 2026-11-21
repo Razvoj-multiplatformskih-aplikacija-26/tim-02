@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ui/ui.dart';
 
 import 'debug_menu.dart';
+import 'sign_in_screen.dart';
 
 class TacticDetailScreen extends StatelessWidget {
   const TacticDetailScreen({super.key, required this.id, required this.variant, required this.early});
@@ -40,10 +41,7 @@ class TacticDetailScreen extends StatelessWidget {
         appBar: AppBar(actions: const [if (kDebugMode) DebugMenu(reloads: false)]),
         body: switch (state) {
           TacticsLoading() => const LoadingView(),
-          TacticsFailure(:final cause) => FailureView(
-            cause: cause,
-            onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
-          ),
+          TacticsFailure(:final cause) => FailureView(cause: cause, onRetry: () => retryTactics(context)),
           TacticsEmpty() => const EmptyView(title: 'Taktika nije pronađena.'),
           TacticsLoaded() => switch (state.tactic(id)) {
             null => const EmptyView(title: 'Taktika nije pronađena.'),

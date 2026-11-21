@@ -80,10 +80,7 @@ class MineScreen extends StatelessWidget {
               onRefresh: () => _refresh(context.read<TacticsBloc>()),
               child: BlocBuilder<TacticsBloc, TacticsState>(
                 builder: (context, state) => switch (state) {
-                  TacticsFailure(:final cause) => FailureView(
-                    cause: cause,
-                    onRetry: () => context.read<TacticsBloc>().add(const TacticsRequested()),
-                  ),
+                  TacticsFailure(:final cause) => FailureView(cause: cause, onRetry: () => retryTactics(context)),
                   TacticsLoading() => const LoadingView(),
                   _ => switch (_sections(context, state is TacticsLoaded ? state.mine : const [])) {
                     [] => EmptyView(

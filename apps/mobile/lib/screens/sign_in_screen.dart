@@ -44,3 +44,12 @@ class AccountButton extends StatelessWidget {
     };
   }
 }
+
+void retryTactics(BuildContext context) {
+  final session = context.read<SessionBloc>();
+  if (session.state case SignedOut(reason: SignOutReason.unreachable)) {
+    session.add(const SessionRestoreRequested());
+  } else {
+    context.read<TacticsBloc>().add(const TacticsRequested());
+  }
+}

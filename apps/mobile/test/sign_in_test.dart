@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:mobile/app.dart';
+import 'package:mobile/dependencies.dart';
 import 'package:ui/ui.dart';
 
 import 'support.dart';
@@ -49,6 +51,20 @@ void main() {
 
     expect(find.text('NOVI NACRT'), findsOneWidget);
     expect(find.text('Draven na nivou 9'), findsOneWidget);
+  });
+
+  testWidgets('a retry after the server was down at start also brings my login back', (tester) async {
+    final dependencies = AppDependencies.fake(latency: Duration.zero);
+    dependencies.fakeSessions!.failingRequests = 1;
+    dependencies.fakeTactics!.failingRequests = 1;
+    await tester.pumpWidget(TftInsightsApp(dependencies: dependencies));
+    await tester.pumpAndSettle();
+    expect(find.text('Podaci trenutno nisu dostupni.'), findsOneWidget);
+
+    await tester.tap(find.text('Pokušaj ponovo'));
+    await tester.pumpAndSettle();
+    await openTab(tester, 'Moje kompozicije');
+    expect(find.text('AP brzi nivo 9 sa Alune'), findsOneWidget);
   });
 
   testWidgets('logging out hides my drafts again', (tester) async {
