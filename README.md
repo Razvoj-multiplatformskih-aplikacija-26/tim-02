@@ -77,7 +77,7 @@ Završena je druga kontrolna tačka: mobilna aplikacija i backoffice rade nad se
 
 ## Pokretanje
 
-Potrebni su Docker i Flutter 3.47.
+Potrebni su Docker (Docker Desktop na Windows-u i macOS-u) i Flutter 3.47.
 
 ### Baza i server
 
@@ -88,15 +88,40 @@ cp .env.example .env    # Windows: copy .env.example .env
 docker compose up -d --build
 ```
 
+`compose.yaml` podiže tri servisa:
+
 | Servis | Šta radi | Adresa |
 | --- | --- | --- |
 | `db` | PostgreSQL 17 | `127.0.0.1:5436` |
 | `migrate` | dbmate primeni migracije iz `apps/server/migrations`, pa izlazi | — |
 | `server` | server u Dartu na Relic-u, slika iz `apps/server/Dockerfile` | http://localhost:8080 |
 
-Kada je baza prazna, server upisuje početne podatke: 30 taktika, tier listu patcha 18.5c, katalog i naloge. Provera: `curl localhost:8080/health` (odgovor `ok`; u PowerShell-u `curl.exe`). `docker compose down -v` briše bazu, pa sledeći `up -d` kreće od nule. Testovi servera traže pokrenutu bazu: u `apps/server` pokrenuti `dart test`.
+Lozinka baze, `DEMO_PASSWORD`, `JWT_SECRET` i portovi su u `.env`, koji nije u git-u. Ako je port zauzet, promenite ga u `.env`: `POSTGRES_PORT` (i isti port u `DATABASE_URL`) ili `SERVER_PORT` (aplikacije tada pokrenite sa `--dart-define=SERVER_URL=http://localhost:<port>`). Kada je baza prazna, server upisuje početne podatke: 30 taktika, tier listu patcha 18.5c, katalog i naloge.
+
+Provera: `docker compose ps -a` (servis `migrate` je `Exited (0)`) i `curl localhost:8080/health` (odgovor `ok`; u PowerShell-u `curl.exe`).
+
+| Komanda | Šta radi |
+| --- | --- |
+| `docker compose logs server` | ispis servera; `logs migrate` za migracije |
+| `docker compose up -d --build server` | nova slika servera posle izmene u `apps/server` ili u paketima |
+| `docker compose down` | gasi sistem, podaci ostaju |
+| `docker compose down -v` | gasi sistem i briše bazu; sledeći `up -d` kreće od nule |
+
+SQL iz terminala: `docker compose exec db psql -U tft -d tft_insights`.
+
+Server bez kontejnera, za debugger i brži restart:
+
+```sh
+docker compose stop server
+cd apps/server
+dart run bin/server.dart    # Ctrl+C zaustavlja
+```
+
+Testovi servera traže pokrenutu bazu i rade nad posebnom bazom `tft_insights_test`: u `apps/server` pokrenuti `dart test`.
 
 ### Aplikacije
+
+Aplikacije rade nad serverom. Android emulator ga nalazi na `10.0.2.2:8080`, a telefon preko USB-a uz `adb reverse tcp:8080 tcp:8080` i `flutter run --dart-define=SERVER_URL=http://localhost:8080` (na mreži: `SERVER_URL=http://<IP računara>:8080`). Pregledač sme da zove server samo sa adrese iz `CORS_ORIGINS` u `.env`; `.env.example` dozvoljava backoffice (`http://localhost:8081`).
 
 U korenu repozitorijuma `flutter pub get`, pa svaka aplikacija u svom terminalu:
 
@@ -110,7 +135,7 @@ cd apps/backoffice
 flutter run -d windows    # ili -d chrome --web-port 8081
 ```
 
-Android emulator nalazi server na `10.0.2.2:8080`. Telefon preko USB-a radi uz `adb reverse tcp:8080 tcp:8080` i `flutter run --dart-define=SERVER_URL=http://localhost:8080`. Pregledač sme da zove server samo sa adrese iz `CORS_ORIGINS` u `.env` (`http://localhost:8081`). Testovi se pokreću sa `dart test` u paketima i `flutter test` u aplikacijama. Ikonice šampiona i predmeta nisu deo repozitorijuma, pa aplikacije bez njih prikazuju imena.
+Testovi se pokreću sa `dart test` u paketima i `flutter test` u aplikacijama. Ikonice šampiona i predmeta nisu deo repozitorijuma, pa aplikacije bez njih prikazuju imena.
 
 ### Demo nalozi
 
