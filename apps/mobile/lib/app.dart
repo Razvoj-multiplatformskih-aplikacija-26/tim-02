@@ -65,8 +65,7 @@ class _TftInsightsAppState extends State<TftInsightsApp> {
               ),
             ),
             BlocListener<SessionBloc, SessionState>(
-              listenWhen: (previous, current) =>
-                  previous is SignedIn && current is SignedOut && current.reason == SignOutReason.expired,
+              listenWhen: (previous, current) => current is SignedOut && current.reason == SignOutReason.expired,
               listener: (context, session) => _router.push('/login'),
             ),
           ],
