@@ -65,3 +65,11 @@ extension TacticActionText on TacticAction {
     TacticAction.restore => 'Taktika je vraćena u javni prikaz.',
   };
 }
+
+extension RoleLabel on Role {
+  String get label => switch (this) {
+    Role.user => 'Korisnik',
+    Role.creator => 'Kreator',
+    Role.admin => 'Administrator',
+  };
+}
