@@ -12,6 +12,8 @@ class TacticPanel extends StatelessWidget {
     required this.onVariantSelected,
     required this.onEarlySelected,
     required this.onClose,
+    this.onPublish,
+    this.onArchive,
     this.onHide,
     this.onRestore,
     this.onEdit,
@@ -27,6 +29,8 @@ class TacticPanel extends StatelessWidget {
   final ValueChanged<int> onVariantSelected;
   final ValueChanged<bool> onEarlySelected;
   final VoidCallback onClose;
+  final VoidCallback? onPublish;
+  final VoidCallback? onArchive;
   final VoidCallback? onHide;
   final VoidCallback? onRestore;
   final VoidCallback? onEdit;
@@ -51,6 +55,18 @@ class TacticPanel extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      if (onPublish case final publish?)
+                        FilledButton.icon(
+                          onPressed: busy ? null : publish,
+                          icon: const Icon(Icons.publish_outlined),
+                          label: Text(TacticAction.publish.label),
+                        ),
+                      if (onArchive case final archive?)
+                        OutlinedButton.icon(
+                          onPressed: busy ? null : archive,
+                          icon: const Icon(Icons.archive_outlined),
+                          label: Text(TacticAction.archive.label),
+                        ),
                       if (onHide case final hide?)
                         Tooltip(
                           message: 'Sakrij izabranu taktiku sa Kompozicija',

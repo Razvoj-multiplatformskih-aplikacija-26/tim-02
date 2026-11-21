@@ -131,6 +131,10 @@ class _TacticsScreenState extends State<TacticsScreen> {
     if (_selected case final tactic?) confirmHide(context, tactic);
   }
 
+  Future<void> _archive(Tactic tactic) async {
+    if (await confirmArchive(context, tactic)) _bloc.add(TacticActionRequested(tactic.id, TacticAction.archive));
+  }
+
   void _restore() {
     if (_selected case final tactic?) _bloc.add(TacticActionRequested(tactic.id, TacticAction.restore));
   }
@@ -221,6 +225,10 @@ class _TacticsScreenState extends State<TacticsScreen> {
             onEarlySelected: (value) => _goTo(selected: selected.id, variant: widget.variant, early: value),
             onClose: _goTo,
             busy: state.isBusy,
+            onPublish: state.actionsFor(selected.id).contains(TacticAction.publish)
+                ? () => _bloc.add(TacticActionRequested(selected.id, TacticAction.publish))
+                : null,
+            onArchive: state.actionsFor(selected.id).contains(TacticAction.archive) ? () => _archive(selected) : null,
             onHide: state.actionsFor(selected.id).contains(TacticAction.hide) ? _hide : null,
             onRestore: state.actionsFor(selected.id).contains(TacticAction.restore) ? _restore : null,
             onEdit: state.canEdit(selected.id) ? _edit : null,

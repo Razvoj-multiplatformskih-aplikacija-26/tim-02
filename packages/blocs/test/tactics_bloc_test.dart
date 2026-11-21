@@ -200,6 +200,7 @@ void main() {
           tactic('t-2', luka, Published(at: now)),
         ],
       ),
+      user: ana,
     ),
     act: (bloc) async {
       bloc.add(const TacticsRequested());
@@ -226,6 +227,7 @@ void main() {
           placements: [TierPlacement(tactic: TacticId('t-1'), tier: Tier.b)],
         ),
       ),
+      user: ana,
     ),
     act: (bloc) async {
       bloc.add(const TacticsRequested());

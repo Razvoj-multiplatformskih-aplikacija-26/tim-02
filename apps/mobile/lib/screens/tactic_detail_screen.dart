@@ -98,21 +98,5 @@ class TacticDetailScreen extends StatelessWidget {
 
 Future<void> _confirmArchive(BuildContext context, Tactic tactic) async {
   final bloc = context.read<TacticsBloc>();
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog.adaptive(
-      title: const Text('Arhivirati taktiku?'),
-      content: Text(
-        tactic.status is Draft
-            ? 'Arhivirani nacrt ne može da se vrati.'
-            : 'Arhivirana taktika više nije javno dostupna i ne može da se vrati.',
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Odustani')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(TacticAction.archive.label)),
-      ],
-    ),
-  );
-  if (confirmed != true) return;
-  bloc.add(TacticActionRequested(tactic.id, TacticAction.archive));
+  if (await confirmArchive(context, tactic)) bloc.add(TacticActionRequested(tactic.id, TacticAction.archive));
 }

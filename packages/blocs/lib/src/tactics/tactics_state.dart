@@ -73,7 +73,7 @@ final class TacticsLoaded extends TacticsState {
   List<Tactic> get visible {
     final words = search.trim().toLowerCase();
     return [
-      for (final t in tactics)
+      for (final t in user?.role == Role.creator ? mine : tactics)
         if ((filter == null || t.status.kind == filter) &&
             (tier == null || tierList.tierOf(t) == tier) &&
             (t.title.toLowerCase().contains(words) || t.authorName.toLowerCase().contains(words)))
